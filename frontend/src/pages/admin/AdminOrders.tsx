@@ -4,15 +4,14 @@ import {
   X, 
   ChevronDown, 
   Search, 
-  Download, 
-  Plus, 
   ChevronRight, 
   TrendingUp, 
   BarChart2, 
   Star, 
   RefreshCcw,
   ArrowRight,
-  Package
+  Package,
+  CheckCircle2
 } from 'lucide-react';
 import api from '../../services/api';
 import type { Order } from '../../types';
@@ -35,9 +34,10 @@ const AdminOrders: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Order | null>(null);
-  const [newStatus, setNewStatus] = useState('');
+  const [newStatus, setNewStatus] = useState<string>('');
   const [statusNote, setStatusNote] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -59,9 +59,11 @@ const AdminOrders: React.FC = () => {
     setUpdating(true);
     try {
       await api.patch(`/orders/${selected._id}/status`, { status: newStatus, note: statusNote });
+      await fetchOrders();
+      setSuccessMsg(`Order #${selected.orderNumber} updated to ${newStatus}`);
+      setTimeout(() => setSuccessMsg(''), 3000);
       setSelected(null);
-      fetchOrders();
-    } catch {}
+    } catch (err) {}
     setUpdating(false);
   };
 
@@ -69,6 +71,21 @@ const AdminOrders: React.FC = () => {
 
   return (
     <div className="space-y-10">
+      {/* Success Notification */}
+      <AnimatePresence>
+        {successMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="fixed top-10 left-1/2 z-[150] bg-emerald-500 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-black uppercase text-[10px] tracking-widest"
+          >
+            <CheckCircle2 size={18} />
+            {successMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
@@ -84,18 +101,7 @@ const AdminOrders: React.FC = () => {
             Manage fulfillment workflows, track shipments, and oversee customer transaction lifecycles from a centralized interface.
           </p>
         </div>
-        <div className="flex gap-4">
-          <button className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-noir hover:text-white dark:hover:bg-white dark:hover:text-noir transition-all shadow-sm">
-            <Download size={16} />
-            Export CSV
-          </button>
-          <button 
-            className="bg-[#4F46E5] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20"
-          >
-            <Plus size={16} />
-            Create Order
-          </button>
-        </div>
+
       </div>
 
       {/* Tabs */}
@@ -127,11 +133,11 @@ const AdminOrders: React.FC = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white dark:bg-white/5 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#080808] rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-[#F8F9FA] dark:bg-white/5 border-b border-noir/5 dark:border-white/5">
+              <tr className="bg-[#F8F9FA] dark:bg-white/[0.03] border-b border-noir/5 dark:border-white/[0.08]">
                 {[
                   { label: 'Order ID', align: 'left' },
                   { label: 'Customer', align: 'left' },
@@ -245,7 +251,7 @@ const AdminOrders: React.FC = () => {
       {/* Insight Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Fulfillment Health */}
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
+        <div className="bg-white dark:bg-[#080808] p-10 rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Fulfillment Health</h2>
             <TrendingUp size={20} className="text-emerald-500" />
@@ -257,13 +263,13 @@ const AdminOrders: React.FC = () => {
           <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8">
             On-time fulfillment rate for the last 30 days is exceeding targets.
           </p>
-          <div className="w-full h-1.5 bg-noir/5 dark:bg-white/5 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-noir/5 dark:bg-white/[0.05] rounded-full overflow-hidden">
             <div className="w-[98.2%] h-full bg-[#4F46E5] rounded-full" />
           </div>
         </div>
 
         {/* Avg. Ship Time */}
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
+        <div className="bg-white dark:bg-[#080808] p-10 rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Avg. Ship Time</h2>
             <RefreshCcw size={20} className="text-[#4F46E5]" />
@@ -277,33 +283,28 @@ const AdminOrders: React.FC = () => {
           </p>
           <div className="flex items-end gap-2 h-10">
             {[40, 60, 30, 80, 50, 90, 100].map((h, i) => (
-              <div key={i} className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-[#4F46E5]' : 'bg-indigo-100 dark:bg-indigo-900/20'}`} style={{ height: `${h}%` }} />
+              <div key={i} className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-[#4F46E5]' : 'bg-indigo-100 dark:bg-indigo-900/10'}`} style={{ height: `${h}%` }} />
             ))}
           </div>
         </div>
 
-        {/* Loyalty Insights */}
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Star size={120} className="text-noir dark:text-white" />
+        {/* Customer Satisfaction */}
+        <div className="bg-white dark:bg-[#080808] p-10 rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Satisfaction</h2>
+            <Star size={20} className="text-amber-500" />
           </div>
-          <div className="relative z-10 h-full flex flex-col">
-            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-8">Loyalty Insights</h2>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-[#4F46E5]">
-                <BarChart2 size={24} />
-              </div>
-              <div>
-                <p className="text-sm font-black text-noir dark:text-white uppercase tracking-tight">82% Repeat Orders</p>
-                <p className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest">Top category: Streetwear</p>
-              </div>
-            </div>
-            <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-auto">
-              Customer satisfaction is currently at an all-time high of 4.9/5 stars.
-            </p>
-            <button className="mt-8 bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#4F46E5] hover:text-white transition-all">
-              Generate Report
-            </button>
+          <div className="flex items-end gap-4 mb-4">
+            <p className="text-[40px] font-black text-noir dark:text-white tracking-tighter leading-none">4.9</p>
+            <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-lg uppercase">/ 5.0</span>
+          </div>
+          <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8">
+            Based on post-delivery customer feedback surveys.
+          </p>
+          <div className="flex gap-1.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star key={s} size={18} className={s <= 4 ? 'fill-amber-400 text-amber-400' : 'text-noir/10 dark:text-white/10'} />
+            ))}
           </div>
         </div>
       </div>
