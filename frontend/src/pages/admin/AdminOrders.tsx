@@ -133,11 +133,11 @@ const AdminOrders: React.FC = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white dark:bg-[#080808] rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-white/5 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-[#F8F9FA] dark:bg-white/[0.03] border-b border-noir/5 dark:border-white/[0.08]">
+              <tr className="bg-[#F8F9FA] dark:bg-white/5 border-b border-noir/5 dark:border-white/5">
                 {[
                   { label: 'Order ID', align: 'left' },
                   { label: 'Customer', align: 'left' },
@@ -251,7 +251,7 @@ const AdminOrders: React.FC = () => {
       {/* Insight Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Fulfillment Health */}
-        <div className="bg-white dark:bg-[#080808] p-10 rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm">
+        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Fulfillment Health</h2>
             <TrendingUp size={20} className="text-emerald-500" />
@@ -263,13 +263,13 @@ const AdminOrders: React.FC = () => {
           <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8">
             On-time fulfillment rate for the last 30 days is exceeding targets.
           </p>
-          <div className="w-full h-1.5 bg-noir/5 dark:bg-white/[0.05] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-noir/5 dark:bg-white/5 rounded-full overflow-hidden">
             <div className="w-[98.2%] h-full bg-[#4F46E5] rounded-full" />
           </div>
         </div>
 
         {/* Avg. Ship Time */}
-        <div className="bg-white dark:bg-[#080808] p-10 rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm">
+        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Avg. Ship Time</h2>
             <RefreshCcw size={20} className="text-[#4F46E5]" />
@@ -283,28 +283,33 @@ const AdminOrders: React.FC = () => {
           </p>
           <div className="flex items-end gap-2 h-10">
             {[40, 60, 30, 80, 50, 90, 100].map((h, i) => (
-              <div key={i} className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-[#4F46E5]' : 'bg-indigo-100 dark:bg-indigo-900/10'}`} style={{ height: `${h}%` }} />
+              <div key={i} className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-[#4F46E5]' : 'bg-indigo-100 dark:bg-indigo-900/20'}`} style={{ height: `${h}%` }} />
             ))}
           </div>
         </div>
 
-        {/* Customer Satisfaction */}
-        <div className="bg-white dark:bg-[#080808] p-10 rounded-[40px] border border-noir/5 dark:border-white/[0.08] shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Satisfaction</h2>
-            <Star size={20} className="text-amber-500" />
+        {/* Loyalty Insights */}
+        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Star size={120} className="text-noir dark:text-white" />
           </div>
-          <div className="flex items-end gap-4 mb-4">
-            <p className="text-[40px] font-black text-noir dark:text-white tracking-tighter leading-none">4.9</p>
-            <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-lg uppercase">/ 5.0</span>
-          </div>
-          <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8">
-            Based on post-delivery customer feedback surveys.
-          </p>
-          <div className="flex gap-1.5">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} size={18} className={s <= 4 ? 'fill-amber-400 text-amber-400' : 'text-noir/10 dark:text-white/10'} />
-            ))}
+          <div className="relative z-10 h-full flex flex-col">
+            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-8">Loyalty Insights</h2>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-[#4F46E5]">
+                <BarChart2 size={24} />
+              </div>
+              <div>
+                <p className="text-sm font-black text-noir dark:text-white uppercase tracking-tight">82% Repeat Orders</p>
+                <p className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest">Top category: Streetwear</p>
+              </div>
+            </div>
+            <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-auto">
+              Customer satisfaction is currently at an all-time high of 4.9/5 stars.
+            </p>
+            <button className="mt-8 bg-indigo-50 dark:bg-indigo-500/10 text-[#4F46E5] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#4F46E5] hover:text-white transition-all">
+              Generate Report
+            </button>
           </div>
         </div>
       </div>
@@ -351,7 +356,7 @@ const AdminOrders: React.FC = () => {
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 custom-scrollbar">
                 {/* Payment Screenshot */}
                 {selected.paymentScreenshot?.url && (
-                  <div>
+                  <div className="p-5 rounded-[24px] bg-noir/[0.03] dark:bg-white/[0.04] border border-noir/5 dark:border-white/5">
                     <p className="text-[9px] font-black text-noir/30 dark:text-white/30 uppercase tracking-widest mb-3 ml-1">Payment Verification</p>
                     <div 
                       className="w-full aspect-[16/9] rounded-2xl overflow-hidden border border-noir/10 dark:border-white/10 group relative cursor-pointer shadow-sm bg-noir/[0.02] dark:bg-white/[0.02]"
@@ -369,13 +374,13 @@ const AdminOrders: React.FC = () => {
 
                 {/* Customer Info Cards (Dynamic Grid) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-noir/[0.02] dark:bg-white/[0.02] border border-noir/5 dark:border-white/5">
+                  <div className="p-5 rounded-[24px] bg-noir/[0.03] dark:bg-white/[0.04] border border-noir/5 dark:border-white/5">
                     <p className="text-[8px] font-black text-noir/30 dark:text-white/30 uppercase tracking-widest mb-2">Customer</p>
                     <p className="text-xs font-black text-noir dark:text-white uppercase truncate">{selected.customer?.name}</p>
                     <p className="text-[10px] font-bold text-noir/40 dark:text-white/40 truncate">{selected.customer?.email}</p>
                     <p className="text-[10px] font-bold text-noir/40 dark:text-white/40">{selected.customer?.phone}</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-noir/[0.02] dark:bg-white/[0.02] border border-noir/5 dark:border-white/5">
+                  <div className="p-5 rounded-[24px] bg-noir/[0.03] dark:bg-white/[0.04] border border-noir/5 dark:border-white/5">
                     <p className="text-[8px] font-black text-noir/30 dark:text-white/30 uppercase tracking-widest mb-2">Destination</p>
                     <p className="text-[10px] font-bold text-noir/60 dark:text-white/60 leading-tight uppercase line-clamp-2">
                       {selected.customer?.address || 'Not provided'}
@@ -384,11 +389,11 @@ const AdminOrders: React.FC = () => {
                 </div>
 
                 {/* Items */}
-                <div className="space-y-3">
+                <div className="p-5 rounded-[24px] bg-noir/[0.03] dark:bg-white/[0.04] border border-noir/5 dark:border-white/5 space-y-3">
                   <p className="text-[9px] font-black text-noir/30 dark:text-white/30 uppercase tracking-widest ml-1">Items Summary</p>
                   <div className="space-y-2">
                     {selected.items?.map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-noir/[0.02] dark:bg-white/[0.02] border border-noir/5 dark:border-white/5">
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-white/[0.03] border border-noir/5 dark:border-white/5">
                         <div className="w-12 h-14 rounded-lg bg-noir/5 dark:bg-white/5 overflow-hidden flex-shrink-0">
                           <img src={item.hoodieImage} alt="" className="w-full h-full object-cover" />
                         </div>
@@ -409,7 +414,8 @@ const AdminOrders: React.FC = () => {
                 </div>
 
                 {/* Status Update (Compact) */}
-                <div className="space-y-4 pt-2">
+                <div className="p-5 rounded-[24px] bg-noir/[0.03] dark:bg-white/[0.04] border border-noir/5 dark:border-white/5 space-y-4">
+                  <p className="text-[9px] font-black text-noir/30 dark:text-white/30 uppercase tracking-widest ml-1">Update Pipeline</p>
                   <div className="grid grid-cols-3 gap-2">
                     {STATUSES.map((s) => (
                       <button
@@ -430,7 +436,7 @@ const AdminOrders: React.FC = () => {
                       placeholder="Add fulfillment note..."
                       value={statusNote}
                       onChange={(e) => setStatusNote(e.target.value)}
-                      className="flex-1 bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-[10px] focus:outline-none focus:border-[#4F46E5] transition-colors text-noir dark:text-white"
+                      className="flex-1 bg-white dark:bg-white/[0.03] border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-[10px] focus:outline-none focus:border-[#4F46E5] transition-colors text-noir dark:text-white"
                     />
                     <button 
                       onClick={handleStatusUpdate} 

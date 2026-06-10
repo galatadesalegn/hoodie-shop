@@ -49,10 +49,10 @@ const AdminDashboard: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-[#080808] p-8 rounded-[32px] border border-noir/5 dark:border-white/[0.08] shadow-sm group hover:shadow-xl transition-all duration-500"
+      className="bg-white dark:bg-white/5 p-8 rounded-[32px] border border-noir/5 dark:border-white/5 shadow-sm group hover:shadow-xl transition-all duration-500"
     >
       <div className="flex items-start justify-between mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-[#F8F9FA] dark:bg-white/[0.05] flex items-center justify-center text-[#4F46E5] dark:text-white group-hover:bg-[#4F46E5] group-hover:text-white transition-all duration-500 shadow-sm">
+        <div className="w-12 h-12 rounded-2xl bg-[#F8F9FA] dark:bg-white/10 flex items-center justify-center text-[#4F46E5] dark:text-white group-hover:bg-[#4F46E5] group-hover:text-white transition-all duration-500 shadow-sm">
           {icon}
         </div>
         <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
@@ -70,28 +70,28 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-10">
       {/* Header / Top Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-noir/5 dark:border-white/10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-noir/5 dark:border-white/5">
         <div className="flex-1 max-w-xl relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-noir/20 dark:text-white/30 group-focus-within:text-[#4F46E5] transition-colors" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-noir/20 dark:text-white/20 group-focus-within:text-[#4F46E5] transition-colors" size={18} />
           <input 
             type="text" 
             placeholder="Search orders, customers..." 
-            className="w-full bg-[#F3F4F6] dark:bg-white/[0.03] border-none rounded-2xl py-4 pl-12 pr-6 text-sm focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none text-noir dark:text-white"
+            className="w-full bg-[#F3F4F6] dark:bg-white/5 border-none rounded-2xl py-4 pl-12 pr-6 text-sm focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none"
           />
         </div>
         <div className="flex items-center gap-6">
-          <button className="w-12 h-12 rounded-2xl bg-white dark:bg-white/[0.03] border border-noir/5 dark:border-white/10 flex items-center justify-center text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-all relative shadow-sm">
+          <button className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 flex items-center justify-center text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-all relative shadow-sm">
             <Bell size={20} />
-            <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-[#050505]" />
+            <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-noir" />
           </button>
-          <button className="w-12 h-12 rounded-2xl bg-white dark:bg-white/[0.03] border border-noir/5 dark:border-white/10 flex items-center justify-center text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-all shadow-sm">
+          <button className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 flex items-center justify-center text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-all shadow-sm">
             <HelpCircle size={20} />
           </button>
           <div className="h-10 w-px bg-noir/10 dark:bg-white/10" />
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-xs font-black text-noir dark:text-white uppercase tracking-tight">{user?.name || 'Admin User'}</p>
-              <p className="text-[10px] font-bold text-noir/30 dark:text-white/40 uppercase tracking-widest">Administrator</p>
+              <p className="text-[10px] font-bold text-noir/30 dark:text-white/30 uppercase tracking-widest">Administrator</p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-[#0F172A] flex items-center justify-center text-white font-black shadow-lg">
               {user?.name?.[0] || 'A'}

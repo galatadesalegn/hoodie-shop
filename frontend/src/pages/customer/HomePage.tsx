@@ -169,7 +169,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ——— PREMIUM SERVICES ——— */}
-      <section id="services" className="section-padding bg-white dark:bg-noir transition-colors duration-500 overflow-hidden">
+      <section id="services" className="section-padding bg-[#F9F9F9] dark:bg-white/[0.02] border-y border-noir/5 dark:border-white/5 transition-colors duration-500 overflow-hidden">
         <div className="container-custom">
           <div className="text-center mb-24">
             <p className="text-[10px] text-noir/30 dark:text-white/30 uppercase tracking-[0.4em] font-black mb-4">Excellence</p>
@@ -202,9 +202,9 @@ const HomePage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: i * 0.2 }}
                 viewport={{ once: true }}
-                className="group p-12 bg-[#F9F9F9] dark:bg-white/[0.02] border border-noir/5 dark:border-white/5 rounded-[40px] flex flex-col items-center text-center hover:bg-noir hover:border-noir dark:hover:bg-white dark:hover:border-white transition-all duration-700 cursor-default"
+                className="group p-12 bg-white dark:bg-white/[0.02] border border-noir/5 dark:border-white/5 rounded-[40px] flex flex-col items-center text-center hover:bg-noir hover:border-noir dark:hover:bg-white dark:hover:border-white transition-all duration-700 cursor-default shadow-sm"
               >
-                <div className="w-20 h-20 bg-white dark:bg-noir rounded-full flex items-center justify-center text-noir dark:text-white shadow-sm mb-10 group-hover:scale-110 group-hover:bg-accent-orange group-hover:text-white transition-all duration-500">
+                <div className="w-20 h-20 bg-[#F9F9F9] dark:bg-noir rounded-full flex items-center justify-center text-noir dark:text-white shadow-sm mb-10 group-hover:scale-110 group-hover:bg-accent-orange group-hover:text-white transition-all duration-500">
                   {s.icon}
                 </div>
                 <h3 className="font-black text-lg text-noir dark:text-white tracking-tight mb-6 uppercase group-hover:text-white dark:group-hover:text-noir transition-colors">

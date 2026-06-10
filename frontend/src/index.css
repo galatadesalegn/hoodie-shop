@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-studio text-noir font-body antialiased selection:bg-noir selection:text-white dark:bg-[#050505] dark:text-white transition-colors duration-500;
+    @apply bg-studio text-noir font-body antialiased selection:bg-noir selection:text-white dark:bg-noir dark:text-white transition-colors duration-500;
   }
   
   h1, h2, h3, h4 {

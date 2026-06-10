@@ -233,7 +233,7 @@ const AccountPage: React.FC = () => {
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-10">
-                    <div className="space-y-1.5 p-5 rounded-2xl bg-noir/[0.02] dark:bg-white/[0.02] border border-noir/5 dark:border-white/5">
+                    <div className="space-y-1.5 p-5 rounded-2xl bg-noir/[0.03] dark:bg-white/[0.05] border border-noir/5 dark:border-white/5 shadow-sm">
                       <p className="text-[9px] font-bold text-noir/30 dark:text-white/30 uppercase tracking-widest">Full Name</p>
                       {isEditing ? (
                         <input
@@ -247,7 +247,7 @@ const AccountPage: React.FC = () => {
                         <p className="text-base font-bold text-noir dark:text-white">{user?.name}</p>
                       )}
                     </div>
-                    <div className="space-y-1.5 p-5 rounded-2xl bg-noir/[0.02] dark:bg-white/[0.02] border border-noir/5 dark:border-white/5 opacity-60">
+                    <div className="space-y-1.5 p-5 rounded-2xl bg-noir/[0.03] dark:bg-white/[0.05] border border-noir/5 dark:border-white/5 opacity-60 shadow-sm">
                       <p className="text-[9px] font-bold text-noir/30 dark:text-white/30 uppercase tracking-widest">Email Address</p>
                       <p className="text-base font-bold text-noir dark:text-white">{user?.email}</p>
                     </div>
@@ -259,8 +259,8 @@ const AccountPage: React.FC = () => {
                       { icon: <CreditCard size={18} />, label: 'Payment', value: 'Saved Methods' },
                       { icon: <Bell size={18} />, label: 'Alerts', value: 'Notifications' }
                     ].map((card, i) => (
-                      <div key={i} className="p-6 rounded-2xl bg-white dark:bg-white/[0.02] border border-noir/5 dark:border-white/5 hover:border-noir/20 dark:hover:border-white/20 transition-all cursor-pointer group">
-                        <div className="w-10 h-10 rounded-xl bg-noir/[0.03] dark:bg-white/[0.03] flex items-center justify-center text-noir/40 dark:text-white/40 mb-4 group-hover:bg-noir group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-noir transition-all duration-500">
+                      <div key={i} className="p-6 rounded-2xl bg-noir/[0.02] dark:bg-white/[0.04] border border-noir/5 dark:border-white/5 hover:border-noir/20 dark:hover:border-white/20 transition-all cursor-pointer group shadow-sm">
+                        <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/[0.03] border border-noir/5 dark:border-white/5 flex items-center justify-center text-noir/40 dark:text-white/40 mb-4 group-hover:bg-noir group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-noir transition-all duration-500 shadow-sm">
                           {card.icon}
                         </div>
                         <p className="text-[9px] font-bold text-noir/30 dark:text-white/30 uppercase tracking-widest mb-1">{card.label}</p>
