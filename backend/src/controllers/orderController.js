@@ -42,6 +42,11 @@ export const createOrder = async (req, res, next) => {
       const subtotal = price * item.quantity;
       totalAmount += subtotal;
 
+      // Decrement stock and increment sold count
+      sizeObj.stock -= item.quantity;
+      hoodie.soldCount += item.quantity;
+      await hoodie.save();
+
       enrichedItems.push({
         hoodie: hoodie._id,
         hoodieName: hoodie.name,
@@ -129,7 +134,7 @@ export const updateOrderStatus = async (req, res, next) => {
 
     order.statusHistory.push({ status: order.status, changedAt: Date.now(), changedBy: req.user._id, note });
     order.status = status;
-    await order.save();
+    await order.save({ validateBeforeSave: false });
 
     await logSecurityEvent({ event: 'order_status_changed', userId: req.user._id, ...getClientInfo(req), details: { orderId: order._id, from: order.statusHistory.at(-1)?.status, to: status } });
 

@@ -79,10 +79,41 @@ export const deleteAdmin = async (req, res, next) => {
 // Get all customers
 export const getCustomers = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, search, status } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
-    const total = await User.countDocuments({ role: 'customer' });
-    const customers = await User.find({ role: 'customer' }).sort('-createdAt').skip(skip).limit(Number(limit));
+    
+    const filter = { role: 'customer' };
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { username: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (status === 'active') filter.isEmailVerified = true;
+    else if (status === 'pending') filter.isEmailVerified = false;
+
+    const total = await User.countDocuments(filter);
+    const customersRaw = await User.find(filter).sort('-createdAt').skip(skip).limit(Number(limit)).lean();
+
+    const Order = (await import('../models/Order.js')).default;
+    const customerIds = customersRaw.map(c => c._id);
+    const spendings = await Order.aggregate([
+      { $match: { 'customer.userId': { $in: customerIds }, status: { $ne: 'cancelled' } } },
+      { $group: { _id: '$customer.userId', totalSpent: { $sum: '$totalAmount' } } }
+    ]);
+
+    const spendingMap = spendings.reduce((acc, curr) => {
+      acc[curr._id.toString()] = curr.totalSpent;
+      return acc;
+    }, {});
+
+    const customers = customersRaw.map(c => ({
+      ...c,
+      id: c._id,
+      totalSpent: spendingMap[c._id.toString()] || 0
+    }));
+
     res.json({ success: true, data: { customers, total } });
   } catch (error) {
     next(error);

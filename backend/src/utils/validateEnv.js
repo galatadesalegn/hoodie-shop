@@ -5,13 +5,10 @@
  */
 
 const requiredEnvVars = {
-  // Database
   MONGODB_URI: {
     required: true,
     description: 'MongoDB connection string',
   },
-  
-  // JWT
   JWT_SECRET: {
     required: true,
     description: 'JWT secret key for access tokens',
@@ -32,8 +29,6 @@ const requiredEnvVars = {
     defaultValue: '7d',
     description: 'JWT refresh token expiration time',
   },
-  
-  // Cloudinary
   CLOUDINARY_CLOUD_NAME: {
     required: true,
     description: 'Cloudinary cloud name',
@@ -46,30 +41,26 @@ const requiredEnvVars = {
     required: true,
     description: 'Cloudinary API secret',
   },
-  
-  // Email
-  SMTP_HOST: {
+  EMAILJS_SERVICE_ID: {
     required: true,
-    description: 'Email server host',
+    description: 'EmailJS service ID',
   },
-  SMTP_PORT: {
+  EMAILJS_PUBLIC_KEY: {
     required: true,
-    description: 'Email server port',
+    description: 'EmailJS public key',
   },
-  SMTP_USER: {
+  EMAILJS_PRIVATE_KEY: {
     required: true,
-    description: 'Email server username',
+    description: 'EmailJS private key (server-side)',
   },
-  SMTP_PASS: {
-    required: true,
-    description: 'Email server password',
+  EMAILJS_TEMPLATE_OTP: {
+    required: false,
+    description: 'EmailJS template for OTP verification',
   },
-  SMTP_FROM_EMAIL: {
-    required: true,
-    description: 'Sender email address',
+  EMAILJS_TEMPLATE_ID: {
+    required: false,
+    description: 'Default EmailJS template (fallback if specific templates not set)',
   },
-  
-  // Server
   PORT: {
     required: false,
     defaultValue: '5000',
@@ -80,27 +71,48 @@ const requiredEnvVars = {
     defaultValue: 'development',
     description: 'Environment (development/production)',
   },
-  
-  // Frontend
   FRONTEND_URL: {
     required: true,
-    description: 'Frontend URL for CORS',
+    description: 'Storefront URL for CORS and email links',
+  },
+  ADMIN_URL: {
+    required: true,
+    description: 'Admin panel URL for CORS',
   },
 };
 
 const optionalEnvVars = {
-  // Additional optional variables can be added here
+  EMAILJS_TEMPLATE_RESET: { description: 'EmailJS template for password reset' },
+  EMAILJS_TEMPLATE_ORDER: { description: 'EmailJS template for order confirmation' },
+  EMAILJS_TEMPLATE_EMAIL_CHANGE: { description: 'EmailJS template for email change' },
+  TELEGRAM_USERNAME: { description: 'Telegram handle for order messages' },
 };
 
-/**
- * Validate environment variables
- * @throws {Error} If required environment variables are missing or invalid
- */
+const PLACEHOLDER_PATTERNS = ['placeholder', 'your_', 'changeme', 'example.com', 'your@'];
+
+const normalizeAliases = () => {
+  const aliases = {
+    JWT_EXPIRES_IN: 'JWT_EXPIRE',
+    JWT_REFRESH_EXPIRES_IN: 'JWT_REFRESH_EXPIRE',
+  };
+  for (const [alias, target] of Object.entries(aliases)) {
+    if (process.env[alias] && !process.env[target]) {
+      process.env[target] = process.env[alias];
+    }
+  }
+};
+
+const isPlaceholder = (value) => {
+  const lower = (value || '').toLowerCase();
+  return PLACEHOLDER_PATTERNS.some((pattern) => lower.includes(pattern));
+};
+
 export const validateEnv = () => {
+  normalizeAliases();
+
   const errors = [];
   const warnings = [];
 
-  // Validate required environment variables
   for (const [key, config] of Object.entries(requiredEnvVars)) {
     const value = process.env[key];
 
@@ -110,61 +122,74 @@ export const validateEnv = () => {
     }
 
     if (value) {
-      // Check minimum length if specified
       if (config.minLength && value.length < config.minLength) {
         errors.push(`${key} must be at least ${config.minLength} characters long`);
       }
 
-      // Validate specific formats
       if (key === 'MONGODB_URI' && !value.startsWith('mongodb')) {
         errors.push(`${key} must be a valid MongoDB connection string`);
       }
 
-      if (key === 'FRONTEND_URL' && !value.startsWith('http')) {
+      if ((key === 'FRONTEND_URL' || key === 'ADMIN_URL') && !value.startsWith('http')) {
         errors.push(`${key} must be a valid URL starting with http:// or https://`);
       }
-
-      if (key === 'SMTP_FROM_EMAIL' && !value.includes('@')) {
-        errors.push(`${key} must be a valid email address`);
-      }
     } else if (!config.required && config.defaultValue) {
-      // Use default value for optional variables
       process.env[key] = config.defaultValue;
       warnings.push(`Using default value for ${key}: ${config.defaultValue}`);
     }
   }
 
-  // Check for optional variables
+  if (!process.env.EMAILJS_TEMPLATE_OTP && !process.env.EMAILJS_TEMPLATE_ID) {
+    errors.push('Set EMAILJS_TEMPLATE_OTP or EMAILJS_TEMPLATE_ID for email verification');
+  }
+
   for (const [key, config] of Object.entries(optionalEnvVars)) {
     if (!process.env[key]) {
       warnings.push(`Optional environment variable not set: ${key} (${config.description})`);
     }
   }
 
-  // Log warnings
-  if (warnings.length > 0) {
-    console.warn('\n⚠️  Environment Variable Warnings:');
-    warnings.forEach(warning => console.warn(`  - ${warning}`));
+  for (const key of ['EMAILJS_SERVICE_ID', 'EMAILJS_PUBLIC_KEY', 'EMAILJS_PRIVATE_KEY']) {
+    if (isPlaceholder(process.env[key])) {
+      const msg = `${key} appears to be a placeholder — EmailJS will not work`;
+      if (process.env.NODE_ENV === 'production') {
+        errors.push(msg);
+      } else {
+        warnings.push(msg);
+      }
+    }
   }
 
-  // Fail fast if there are errors
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.FRONTEND_URL?.startsWith('https://')) {
+      errors.push('FRONTEND_URL must use https:// in production');
+    }
+    if (!process.env.ADMIN_URL?.startsWith('https://')) {
+      errors.push('ADMIN_URL must use https:// in production');
+    }
+  }
+
+  if (warnings.length > 0) {
+    console.warn('\n⚠️  Environment Variable Warnings:');
+    warnings.forEach((warning) => console.warn(`  - ${warning}`));
+  }
+
   if (errors.length > 0) {
     console.error('\n❌ Environment Variable Validation Failed:');
-    errors.forEach(error => console.error(`  - ${error}`));
+    errors.forEach((error) => console.error(`  - ${error}`));
     console.error('\nPlease set all required environment variables before starting the application.');
     process.exit(1);
   }
 
   console.log('\n✅ Environment variables validated successfully');
-  
-  // Log configuration (without sensitive values)
   console.log('\n📋 Configuration:');
   console.log(`  Environment: ${process.env.NODE_ENV}`);
   console.log(`  Port: ${process.env.PORT}`);
   console.log(`  Database: ${process.env.MONGODB_URI ? '✓ Configured' : '✗ Missing'}`);
   console.log(`  Cloudinary: ${process.env.CLOUDINARY_CLOUD_NAME ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`  Email: ${process.env.EMAIL_HOST ? '✓ Configured' : '✗ Missing'}`);
-  console.log(`  Frontend URL: ${process.env.FRONTEND_URL}`);
+  console.log(`  Email (EmailJS): ${process.env.EMAILJS_SERVICE_ID ? '✓ Configured' : '✗ Missing'}`);
+  console.log(`  Storefront URL: ${process.env.FRONTEND_URL}`);
+  console.log(`  Admin URL: ${process.env.ADMIN_URL}`);
   console.log('');
 };
 

@@ -57,19 +57,33 @@ app.use(helmet({
     preload: true
   },
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  xContentTypeOptions: { nosniff: true },
+  // xContentTypeOptions defaults to true (nosniff) in recent helmet versions and does not accept options
   xFrameOptions: { action: 'deny' },
   xXssProtection: true,
 }));
 
-// CORS
+// CORS — allow storefront and admin panel origins
+const getAllowedOrigins = () => {
+  if (process.env.NODE_ENV !== 'production') {
+    return [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'http://localhost:3001',
+    ];
+  }
+  const origins = [
+    ...(process.env.FRONTEND_URL?.split(',') || []),
+    ...(process.env.ADMIN_URL?.split(',') || []),
+  ].map((o) => o.trim()).filter(Boolean);
+  return origins;
+};
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? (process.env.FRONTEND_URL?.split(',') || []) 
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin: getAllowedOrigins(),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With'],
 }));
 
 // Body parsing

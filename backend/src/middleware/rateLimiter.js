@@ -59,3 +59,9 @@ export const emailChangeLimiter = createLimiter(
   5,
   'Too many email change requests. Please try again after 1 hour.'
 );
+
+export const verifyOtpLimiter = createLimiter(
+  15 * 60 * 1000, // 15 minutes
+  10,
+  'Too many verification attempts. Please wait 15 minutes before trying again.'
+);

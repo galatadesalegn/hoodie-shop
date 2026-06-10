@@ -28,6 +28,7 @@ export const setTokenCookies = (res, accessToken, refreshToken) => {
     secure: isProduction,
     sameSite: isProduction ? 'strict' : 'lax',
     maxAge: 15 * 60 * 1000, // 15 min
+    path: '/',
   });
 
   res.cookie('refreshToken', refreshToken, {
@@ -35,11 +36,11 @@ export const setTokenCookies = (res, accessToken, refreshToken) => {
     secure: isProduction,
     sameSite: isProduction ? 'strict' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/api/auth/refresh',
+    path: '/',
   });
 };
 
 export const clearTokenCookies = (res) => {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+  res.clearCookie('accessToken', { path: '/' });
+  res.clearCookie('refreshToken', { path: '/' });
 };

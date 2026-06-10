@@ -67,6 +67,7 @@ userSchema.index({ role: 1 });
 // Hash password before save
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
+  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
@@ -94,11 +95,19 @@ userSchema.methods.incrementLoginAttempts = async function () {
   await this.updateOne(updates);
 };
 
-// Generate email verification token
+// Generate 6-digit email verification OTP (15 min expiry)
+userSchema.methods.generateEmailVerificationOtp = function () {
+  const otp = String(crypto.randomInt(100000, 1000000));
+  this.emailVerificationToken = crypto.createHash('sha256').update(otp).digest('hex');
+  this.emailVerificationExpires = Date.now() + 15 * 60 * 1000;
+  return otp;
+};
+
+// Legacy link-based token (kept for backwards compatibility)
 userSchema.methods.generateEmailVerificationToken = function () {
   const token = crypto.randomBytes(32).toString('hex');
   this.emailVerificationToken = crypto.createHash('sha256').update(token).digest('hex');
-  this.emailVerificationExpires = Date.now() + 15 * 60 * 1000; // 15 min
+  this.emailVerificationExpires = Date.now() + 15 * 60 * 1000;
   return token;
 };
 

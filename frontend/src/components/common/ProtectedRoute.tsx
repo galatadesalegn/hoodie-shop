@@ -20,17 +20,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
   }
 
   if (!user) {
-    // Check if we are trying to access /admin and redirect to admin login if so
-    if (location.pathname.startsWith('/admin')) {
-      return <Navigate to="/admin/login" state={{ from: location }} replace />;
-    }
-    // Redirect to login but save the current location to redirect back after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (roles && !roles.includes(user.role)) {
-    console.log('Role mismatch redirecting to /:', { userRole: user.role, requiredRoles: roles });
-    // Role not authorized
     return <Navigate to="/" replace />;
   }
 

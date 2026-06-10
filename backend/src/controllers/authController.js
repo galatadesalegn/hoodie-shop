@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import User from '../models/User.js';
+import PendingRegistration from '../models/PendingRegistration.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken, setTokenCookies, clearTokenCookies } from '../utils/jwt.js';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js';
+import { sendVerificationOtpEmail, sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js';
 import { logSecurityEvent, getClientInfo } from '../utils/securityLog.js';
 import { AppError } from '../utils/response.js';
 
@@ -11,19 +12,41 @@ export const register = async (req, res, next) => {
     const { name, username, email, password } = req.body;
     const info = getClientInfo(req);
 
-    const user = await User.create({ name, username, email, password, role: 'customer' });
-    const token = user.generateEmailVerificationToken();
-    await user.save({ validateBeforeSave: false });
+    // Check if user already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      if (existingUser.email === email) return next(new AppError('Email is already registered.', 400));
+      return next(new AppError('Username is already taken.', 400));
+    }
+
+    // Delete any existing pending registration for this email
+    await PendingRegistration.deleteMany({ email });
+
+    const pendingUser = await PendingRegistration.create({ name, username, email, password });
+    const otp = pendingUser.generateOtp();
+    await pendingUser.save();
 
     try {
-      await sendVerificationEmail(user.email, user.name, token);
-    } catch (_) {}
+      await sendVerificationOtpEmail(pendingUser.email, pendingUser.name, otp);
+    } catch (emailError) {
+      await PendingRegistration.findByIdAndDelete(pendingUser._id);
+      const hint = emailError.message?.includes('recipients address is empty')
+        ? 'Set the template "To Email" field to {{email}} in your EmailJS dashboard.'
+        : emailError.message;
+      return next(new AppError(
+        process.env.NODE_ENV === 'development' && hint
+          ? `Could not send verification email: ${hint}`
+          : 'Could not send verification email. Please check EmailJS settings and try again.',
+        503,
+      ));
+    }
 
-    await logSecurityEvent({ event: 'login_success', userId: user._id, ...info, details: { action: 'register' }, severity: 'low' });
+    await logSecurityEvent({ event: 'registration_pending', userId: pendingUser._id, ...info, details: { action: 'register' }, severity: 'low' });
 
     res.status(201).json({
       success: true,
-      message: 'Account created! Please check your email to verify your account.',
+      message: 'Account created! Enter the 6-digit code sent to your email.',
+      data: { email: pendingUser.email },
     });
   } catch (error) {
     next(error);
@@ -76,6 +99,10 @@ export const login = async (req, res, next) => {
     }
 
     if (!user.isActive) return next(new AppError('Account has been deactivated.', 401));
+
+    if (user.role === 'customer' && !user.isEmailVerified) {
+      return next(new AppError('Please verify your email with the OTP code sent to your inbox before logging in.', 403));
+    }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
@@ -225,17 +252,101 @@ export const getMe = async (req, res, next) => {
   }
 };
 
-// Resend verification
+// Verify email with OTP
+export const verifyEmailOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const hashed = crypto.createHash('sha256').update(String(otp).trim()).digest('hex');
+
+    // First try to find a pending registration
+    const pendingUser = await PendingRegistration.findOne({
+      email: email.toLowerCase(),
+      otpToken: hashed,
+    });
+
+    if (pendingUser) {
+      // Create actual user
+      const user = await User.create({
+        name: pendingUser.name,
+        username: pendingUser.username,
+        email: pendingUser.email,
+        password: pendingUser.password, // Already hashed, User model will bypass hashing
+        role: 'customer',
+        isEmailVerified: true
+      });
+
+      await PendingRegistration.deleteMany({ email: email.toLowerCase() });
+      await logSecurityEvent({ event: 'email_verified', userId: user._id, ...getClientInfo(req) });
+
+      return res.json({ success: true, message: 'Email verified successfully! You can now log in.' });
+    }
+
+    // Fallback: Check if user is already in User collection but unverified (legacy support)
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      emailVerificationToken: hashed,
+      emailVerificationExpires: { $gt: Date.now() },
+    }).select('+emailVerificationToken +emailVerificationExpires');
+
+    if (!user) return next(new AppError('Invalid or expired verification code.', 400));
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    await logSecurityEvent({ event: 'email_verified', userId: user._id, ...getClientInfo(req) });
+
+    res.json({ success: true, message: 'Email verified successfully! You can now log in.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Resend OTP (unauthenticated — after registration)
+export const resendVerificationOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const message = 'If an unverified account exists, a new verification code has been sent.';
+
+    // Check main User collection first (legacy support)
+    const user = await User.findOne({ email }).select('+emailVerificationToken +emailVerificationExpires');
+    if (user) {
+      if (user.isEmailVerified) return res.json({ success: true, message });
+
+      const otp = user.generateEmailVerificationOtp();
+      await user.save({ validateBeforeSave: false });
+      await sendVerificationOtpEmail(user.email, user.name, otp);
+      return res.json({ success: true, message });
+    }
+
+    // Check PendingRegistration collection
+    const pendingUser = await PendingRegistration.findOne({ email });
+    if (pendingUser) {
+      const otp = pendingUser.generateOtp();
+      // Reset TTL expiry by updating createdAt
+      pendingUser.createdAt = Date.now();
+      await pendingUser.save();
+      await sendVerificationOtpEmail(pendingUser.email, pendingUser.name, otp);
+    }
+
+    res.json({ success: true, message });
+  } catch (error) {
+    next(new AppError('Could not send verification email. Try again later.', 503));
+  }
+};
+
+// Resend verification (authenticated)
 export const resendVerification = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).select('+emailVerificationToken +emailVerificationExpires');
     if (user.isEmailVerified) return next(new AppError('Email already verified.', 400));
 
-    const token = user.generateEmailVerificationToken();
+    const otp = user.generateEmailVerificationOtp();
     await user.save({ validateBeforeSave: false });
-    await sendVerificationEmail(user.email, user.name, token);
+    await sendVerificationOtpEmail(user.email, user.name, otp);
 
-    res.json({ success: true, message: 'Verification email sent.' });
+    res.json({ success: true, message: 'Verification code sent.' });
   } catch (error) {
     next(error);
   }

@@ -4,10 +4,12 @@
   "description": "HoodVault Premium Hoodie E-Commerce Store",
   "private": true,
   "scripts": {
-    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../admin && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "dev:admin": "cd admin && npm run dev",
     "seed": "cd backend && npm run seed",
-    "build:frontend": "cd frontend && npm run build"
+    "build:frontend": "cd frontend && npm run build",
+    "build:admin": "cd admin && npm run build"
   }
 }

@@ -17,15 +17,19 @@ hoodie-store/
 │   │   └── utils/              # Logger, email, JWT, seeder
 │   ├── logs/                   # Auto-created log files
 │   └── package.json
-├── frontend/                   # React + Vite + TypeScript
+├── frontend/                   # Customer storefront (React + Vite)
 │   ├── src/
-│   │   ├── components/         # Reusable UI components
-│   │   │   ├── admin/          # Admin layout + sidebar
-│   │   │   └── customer/       # Navbar, Footer, ProductCard
+│   │   ├── components/         # Navbar, Footer, ProductCard
 │   │   ├── contexts/           # Auth, Theme, Cart (Zustand)
-│   │   ├── pages/
-│   │   │   ├── admin/          # Dashboard, Products, Orders...
-│   │   │   └── customer/       # Home, Shop, Cart, Login...
+│   │   ├── pages/              # Home, Shop, Cart, Login...
+│   │   ├── services/           # Axios API client
+│   │   └── types/              # TypeScript interfaces
+│   └── package.json
+├── admin/                      # Admin panel (separate React + Vite app)
+│   ├── src/
+│   │   ├── components/         # AdminLayout, AdminSidebar
+│   │   ├── contexts/           # Auth, Theme
+│   │   ├── pages/              # Dashboard, Products, Orders...
 │   │   ├── services/           # Axios API client
 │   │   └── types/              # TypeScript interfaces
 │   └── package.json
@@ -40,7 +44,7 @@ hoodie-store/
 - Node.js 18+
 - MongoDB (local or Atlas)
 - Cloudinary account
-- Gmail / SMTP credentials
+- EmailJS account (for OTP email verification)
 
 ### 1. Clone & Install
 
@@ -51,6 +55,7 @@ npm run install:all
 # Or separately:
 cd backend && npm install
 cd ../frontend && npm install
+cd ../admin && npm install
 ```
 
 ### 2. Backend Environment
@@ -66,6 +71,7 @@ Required `.env` values:
 PORT=5000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
+ADMIN_URL=http://localhost:5174
 MONGODB_URI=mongodb://localhost:27017/hoodie-store
 JWT_SECRET=your_32+_char_secret_here
 JWT_REFRESH_SECRET=your_32+_char_refresh_secret_here
@@ -74,12 +80,10 @@ JWT_REFRESH_EXPIRES_IN=7d
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your@gmail.com
-SMTP_PASS=your_app_password
-SMTP_FROM_NAME=HoodVault
-SMTP_FROM_EMAIL=noreply@hoodvault.com
+EMAILJS_SERVICE_ID=service_xxxxxxx
+EMAILJS_PUBLIC_KEY=your_public_key
+EMAILJS_PRIVATE_KEY=your_private_key
+EMAILJS_TEMPLATE_OTP=template_xxxxxxx
 TELEGRAM_USERNAME=your_telegram_handle
 SUPER_ADMIN_NAME=Super Admin
 SUPER_ADMIN_USERNAME=superadmin
@@ -97,9 +101,22 @@ cp .env.example .env.local
 ```env
 VITE_API_URL=http://localhost:5000/api
 VITE_TELEGRAM_USERNAME=your_telegram_handle
+VITE_ADMIN_URL=http://localhost:5174
 ```
 
-### 4. Seed Database
+### 4. Admin Environment
+
+```bash
+cd admin
+cp .env.example .env
+```
+
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_STORE_URL=http://localhost:5173
+```
+
+### 5. Seed Database
 
 ```bash
 cd backend
@@ -110,19 +127,22 @@ This creates:
 - Super Admin account (credentials from `.env`)
 - 3 sample hoodies
 
-### 5. Run Development Servers
+### 6. Run Development Servers
 
 ```bash
 # Terminal 1 — Backend
-cd backend && npm run dev
+npm run dev:backend
 
-# Terminal 2 — Frontend
-cd frontend && npm run dev
+# Terminal 2 — Storefront
+npm run dev:frontend
+
+# Terminal 3 — Admin panel (separate app)
+npm run dev:admin
 ```
 
-- Frontend: http://localhost:5173
+- Storefront: http://localhost:5173
+- Admin panel: http://localhost:5174
 - Backend API: http://localhost:5000
-- Admin Panel: http://localhost:5173/admin
 
 ---
 
@@ -271,6 +291,6 @@ npm start
 | Database   | MongoDB + Mongoose                            |
 | Auth       | JWT (access + refresh), bcryptjs              |
 | Storage    | Cloudinary                                    |
-| Email      | Nodemailer (SMTP)                             |
+| Email      | EmailJS                                       |
 | Security   | Helmet, express-mongo-sanitize, rate-limit    |
 | Logging    | Winston                                       |

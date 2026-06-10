@@ -1,6 +1,6 @@
 import express from 'express';
-import { register, login, logout, verifyEmail, forgotPassword, resetPassword, refreshToken, getMe, resendVerification, updateProfile } from '../controllers/authController.js';
-import { loginLimiter, registerLimiter, forgotPasswordLimiter } from '../middleware/rateLimiter.js';
+import { register, login, logout, verifyEmail, verifyEmailOtp, resendVerificationOtp, forgotPassword, resetPassword, refreshToken, getMe, resendVerification, updateProfile } from '../controllers/authController.js';
+import { loginLimiter, registerLimiter, forgotPasswordLimiter, verifyOtpLimiter } from '../middleware/rateLimiter.js';
 import { protect } from '../middleware/auth.js';
 import { body, param } from 'express-validator';
 import { validateRequest } from '../middleware/validate.js';
@@ -34,6 +34,17 @@ router.patch('/profile', protect, [
   body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 60 }),
   validateRequest,
 ], updateProfile);
+
+router.post('/verify-email-otp', verifyOtpLimiter, [
+  body('email').normalizeEmail().isEmail().withMessage('Valid email required'),
+  body('otp').trim().matches(/^\d{6}$/).withMessage('OTP must be a 6-digit code'),
+  validateRequest,
+], verifyEmailOtp);
+
+router.post('/resend-otp', verifyOtpLimiter, [
+  body('email').normalizeEmail().isEmail().withMessage('Valid email required'),
+  validateRequest,
+], resendVerificationOtp);
 
 router.get('/verify-email/:token', [
   param('token').notEmpty(),

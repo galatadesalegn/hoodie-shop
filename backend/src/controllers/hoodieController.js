@@ -168,7 +168,7 @@ export const getDashboardStats = async (req, res, next) => {
       Hoodie.countDocuments(),
       (await import('../models/Order.js')).default.countDocuments(),
       (await import('../models/User.js')).default.countDocuments({ role: 'customer' }),
-      Hoodie.find({ isActive: true }).sort('-viewCount').limit(5).select('name viewCount images price'),
+      Hoodie.find({ isActive: true }).sort('-viewCount').limit(5).select('name viewCount images price category soldCount'),
       (await import('../models/Order.js')).default.find().sort('-createdAt').limit(10).populate('items.hoodie', 'name images'),
       Hoodie.aggregate([{ $group: { _id: '$category', count: { $sum: 1 } } }]),
     ]);
