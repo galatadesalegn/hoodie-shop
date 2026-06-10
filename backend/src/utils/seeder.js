@@ -15,13 +15,34 @@ const seedSuperAdmin = async () => {
     return;
   }
 
+  const name = process.env.SUPER_ADMIN_NAME;
+  const username = process.env.SUPER_ADMIN_USERNAME;
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  let password = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!name || !username || !email) {
+    console.error('Missing SUPER_ADMIN_NAME, SUPER_ADMIN_USERNAME or SUPER_ADMIN_EMAIL in environment. Skipping super admin creation.');
+    return;
+  }
+
+  if (!password) {
+    // Generate a strong random password if not provided
+    const crypto = await import('crypto');
+    const buf = crypto.randomBytes(12).toString('base64');
+    // Ensure the password contains at least one symbol and one uppercase
+    password = `A${buf}#1`;
+    console.warn('No SUPER_ADMIN_PASSWORD provided. A strong password was generated for the super admin:');
+    console.warn(password);
+  }
+
   await User.create({
-    name: process.env.SUPER_ADMIN_NAME || 'Super Admin',
-    username: process.env.SUPER_ADMIN_USERNAME || 'superadmin',
-    email: process.env.SUPER_ADMIN_EMAIL || 'superadmin@hoodvault.com',
-    password: process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin@123',
+    name,
+    username,
+    email,
+    password,
     role: 'superadmin',
     isEmailVerified: true,
+    refreshTokens: [],
   });
   console.log('✅ Super Admin created');
 };

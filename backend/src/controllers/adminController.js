@@ -5,6 +5,7 @@ import { logSecurityEvent, getClientInfo } from '../utils/securityLog.js';
 import { AppError } from '../utils/response.js';
 import { uploadAvatar } from '../config/cloudinary.js';
 import { sendEmailChangeVerification } from '../utils/email.js';
+import { clearTokenCookies } from '../utils/jwt.js';
 
 // Super Admin: Get all admins
 export const getAdmins = async (req, res, next) => {
@@ -124,28 +125,56 @@ export const getCustomers = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const { name, username, email } = req.body;
-    const user = await User.findById(req.user._id).select('+emailChangeToken +emailChangeExpires +pendingEmail');
-
+    const user = await User.findById(req.user._id).select('+emailChangeToken +emailChangeExpires +pendingEmail +refreshTokens');
+    // Name update
     if (name) user.name = name;
-    if (username) user.username = username;
-    
-    let emailChangeStarted = false;
-    if (email && email !== user.email) {
-      const token = user.generateEmailChangeToken(email);
-      await user.save({ validateBeforeSave: false });
-      await sendEmailChangeVerification(email, user.name, token);
-      emailChangeStarted = true;
-    } else {
-      await user.save();
+
+    // Username update: ensure uniqueness and invalidate sessions
+    if (username && username !== user.username) {
+      const existing = await User.findOne({ username });
+      if (existing) return next(new AppError('Username is already taken.', 400));
+      user.username = username;
+      // Invalidate refresh tokens to force re-authentication
+      user.refreshTokens = [];
+      await logSecurityEvent({ event: 'username_changed', userId: req.user._id, targetId: user._id, ...getClientInfo(req), details: { username }, severity: 'medium' });
     }
 
-    res.json({ 
-      success: true, 
-      message: emailChangeStarted 
-        ? 'Profile updated. A verification link has been sent to your new email.' 
-        : 'Profile updated.', 
-      data: { user } 
-    });
+    // Email change: use OTP verification (set pending email and send OTP)
+    if (email && email !== user.email) {
+      // Check if email already used
+      const emailTaken = await User.findOne({ email });
+      if (emailTaken) return next(new AppError('Email is already in use by another account.', 400));
+
+      // Create OTP and set pending email
+      const otp = String(crypto.randomInt(100000, 1000000));
+      const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
+      user.pendingEmail = email;
+      user.emailChangeToken = hashedOtp;
+      user.emailChangeExpires = Date.now() + 15 * 60 * 1000; // 15 min
+
+      // Send OTP email
+      try {
+        const { sendVerificationOtpEmail } = await import('../utils/email.js');
+        await sendVerificationOtpEmail(email, user.name, otp);
+      } catch (err) {
+        // cleanup pending fields on failure
+        user.pendingEmail = undefined;
+        user.emailChangeToken = undefined;
+        user.emailChangeExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+        return next(new AppError('Could not send verification code. Try again later.', 500));
+      }
+
+      await user.save({ validateBeforeSave: false });
+
+      await logSecurityEvent({ event: 'email_change_requested', userId: req.user._id, targetId: user._id, ...getClientInfo(req), details: { to: email }, severity: 'medium' });
+
+      return res.json({ success: true, message: 'Verification code sent to your new email. Please verify to complete the change.' });
+    }
+
+    await user.save({ validateBeforeSave: false });
+
+    res.json({ success: true, message: 'Profile updated successfully.', data: { user } });
   } catch (error) {
     next(error);
   }
@@ -194,7 +223,12 @@ export const changePassword = async (req, res, next) => {
     }
 
     user.password = newPassword;
-    await user.save();
+    user.passwordChangedAt = Date.now();
+    // Invalidate all refresh tokens so existing sessions are logged out
+    user.refreshTokens = [];
+    await user.save({ validateBeforeSave: false });
+
+    clearTokenCookies(res);
 
     await logSecurityEvent({ event: 'password_changed', userId: user._id, ...getClientInfo(req), details: { method: 'settings' }, severity: 'medium' });
 
@@ -217,6 +251,46 @@ export const uploadProfileAvatar = (req, res, next) => {
       next(error);
     }
   });
+};
+
+// Verify admin email OTP
+export const verifyAdminEmailOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const hashed = crypto.createHash('sha256').update(String(otp).trim()).digest('hex');
+
+    const user = await User.findById(req.user._id).select('+emailChangeToken +emailChangeExpires +pendingEmail +refreshTokens');
+    
+    if (!user.pendingEmail || user.pendingEmail !== email) {
+      return next(new AppError('No pending email change found.', 400));
+    }
+
+    if (user.emailChangeToken !== hashed || !user.emailChangeExpires || user.emailChangeExpires < Date.now()) {
+      return next(new AppError('Invalid or expired verification code.', 400));
+    }
+
+    // Update email (preserve refreshTokens and other sensitive fields)
+    const oldEmail = user.email;
+    user.email = email;
+    user.pendingEmail = undefined;
+    user.emailChangeToken = undefined;
+    user.emailChangeExpires = undefined;
+    // Ensure refreshTokens is initialized as empty array if it doesn't exist
+    if (!user.refreshTokens) user.refreshTokens = [];
+    await user.save({ validateBeforeSave: false });
+
+    await logSecurityEvent({
+      event: 'email_changed',
+      userId: user._id,
+      ...getClientInfo(req),
+      details: { from: oldEmail, to: email },
+      severity: 'medium',
+    });
+
+    res.json({ success: true, message: 'Email verified and updated successfully.', data: { user } });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Security logs (super admin)

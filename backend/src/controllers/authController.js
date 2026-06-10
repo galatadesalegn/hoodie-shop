@@ -117,10 +117,15 @@ export const login = async (req, res, next) => {
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id);
 
-    // Store refresh token
+    // Store refresh token (initialize if needed)
+    if (!Array.isArray(user.refreshTokens)) {
+      user.refreshTokens = [];
+    }
     user.refreshTokens.push(refreshToken);
     if (user.refreshTokens.length > 5) user.refreshTokens.shift();
     await user.save({ validateBeforeSave: false });
+
+    console.log('[LOGIN] Refresh token stored for user:', user._id, 'Total tokens:', user.refreshTokens.length);
 
     setTokenCookies(res, accessToken, refreshToken);
 
@@ -143,12 +148,32 @@ export const login = async (req, res, next) => {
 export const refreshToken = async (req, res, next) => {
   try {
     const token = req.cookies?.refreshToken || req.body?.refreshToken;
-    if (!token) return next(new AppError('No refresh token provided.', 401));
+    if (!token) {
+      console.warn('[REFRESH] No token found in cookies or body');
+      return next(new AppError('No refresh token provided.', 401));
+    }
 
     const decoded = verifyRefreshToken(token);
-    const user = await User.findById(decoded.id).select('+refreshTokens');
+    const user = await User.findById(decoded.id).select('+refreshTokens +passwordChangedAt');
 
-    if (!user || !user.refreshTokens.includes(token)) {
+    if (!user) {
+      console.warn('[REFRESH] User not found for token');
+      return next(new AppError('Invalid refresh token.', 401));
+    }
+
+    // Ensure refreshTokens is an array
+    if (!Array.isArray(user.refreshTokens)) {
+      console.warn('[REFRESH] refreshTokens is not an array:', user.refreshTokens);
+      user.refreshTokens = [];
+    }
+
+    if (!user.refreshTokens.includes(token)) {
+      console.warn('[REFRESH] Token not in user refreshTokens array');
+      return next(new AppError('Invalid refresh token.', 401));
+    }
+
+    if (user.passwordChangedAt && decoded.iat * 1000 < user.passwordChangedAt.getTime()) {
+      console.warn('[REFRESH] Token issued before password change');
       return next(new AppError('Invalid refresh token.', 401));
     }
 
@@ -165,6 +190,8 @@ export const refreshToken = async (req, res, next) => {
 
     res.json({ success: true, data: { accessToken } });
   } catch (error) {
+    console.error('[REFRESH] Error:', error.message);
+    clearTokenCookies(res);
     next(new AppError('Invalid or expired refresh token.', 401));
   }
 };
@@ -265,14 +292,15 @@ export const verifyEmailOtp = async (req, res, next) => {
     });
 
     if (pendingUser) {
-      // Create actual user
+      // Create actual user with empty refreshTokens array
       const user = await User.create({
         name: pendingUser.name,
         username: pendingUser.username,
         email: pendingUser.email,
         password: pendingUser.password, // Already hashed, User model will bypass hashing
         role: 'customer',
-        isEmailVerified: true
+        isEmailVerified: true,
+        refreshTokens: []
       });
 
       await PendingRegistration.deleteMany({ email: email.toLowerCase() });

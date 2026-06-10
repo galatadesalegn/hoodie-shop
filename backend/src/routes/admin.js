@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAdmins, createAdmin, updateAdmin, deleteAdmin, getCustomers, updateProfile, changePassword, uploadProfileAvatar, getSecurityLogs, verifyEmailChange } from '../controllers/adminController.js';
+import { getAdmins, createAdmin, updateAdmin, deleteAdmin, getCustomers, updateProfile, changePassword, uploadProfileAvatar, getSecurityLogs, verifyEmailChange, verifyAdminEmailOtp } from '../controllers/adminController.js';
 import { protect, restrictTo } from '../middleware/auth.js';
 import { uploadLimiter, adminActionLimiter, securityLogLimiter, emailChangeLimiter } from '../middleware/rateLimiter.js';
 import { body } from 'express-validator';
@@ -14,6 +14,7 @@ router.use(protect, restrictTo('admin', 'superadmin'));
 
 router.get('/customers', adminActionLimiter, getCustomers);
 router.patch('/profile', adminActionLimiter, updateProfile);
+router.post('/verify-email-otp', adminActionLimiter, [body('email').isEmail(), body('otp').matches(/^\d{6}$/)], validateRequest, verifyAdminEmailOtp);
 router.patch('/change-password', [
   adminActionLimiter,
   body('currentPassword').notEmpty(),

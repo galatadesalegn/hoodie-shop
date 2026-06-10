@@ -474,7 +474,7 @@ const AdminProducts: React.FC = () => {
               </div>
 
               {/* Modal Content */}
-              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-10 py-8 space-y-10 custom-scrollbar bg-white dark:bg-[#0A0A0A]">
+              <form id="product-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-10 py-8 space-y-10 custom-scrollbar bg-white dark:bg-[#0A0A0A]">
                 {error && (
                   <div className="bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 p-3.5 rounded-xl flex items-center gap-3 text-red-600 text-[11px] font-bold">
                     <AlertTriangle size={14} />
@@ -744,7 +744,8 @@ const AdminProducts: React.FC = () => {
                   Discard
                 </button>
                 <button 
-                  onClick={handleSubmit}
+                  type="submit"
+                  form="product-form"
                   disabled={submitting} 
                   className="flex-[2] bg-noir dark:bg-white text-white dark:text-noir px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-2xl disabled:opacity-50 flex items-center justify-center gap-2.5 group"
                 >

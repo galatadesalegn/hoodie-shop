@@ -7,7 +7,7 @@ const getEmailJsConfig = () => ({
 });
 
 const getTemplateId = (specificTemplate) =>
-  specificTemplate || process.env.EMAILJS_TEMPLATE_ID;
+  specificTemplate || process.env.EMAILJS_TEMPLATE_EMAIL_CHANGE || process.env.EMAILJS_TEMPLATE_OTP || process.env.EMAILJS_TEMPLATE_ID;
 
 /** EmailJS templates use different variable names for the recipient — send all common ones */
 const withRecipient = (email, name, params) => ({
@@ -85,7 +85,7 @@ export const sendPasswordResetEmail = async (email, name, token) => {
 };
 
 export const sendEmailChangeVerification = async (email, name, token) => {
-  const verifyUrl = `${process.env.FRONTEND_URL}/verify-email-change?token=${token}`;
+  const verifyUrl = `${process.env.ADMIN_URL || process.env.FRONTEND_URL}/verify-email-change?token=${token}`;
 
   await sendViaEmailJs(getTemplateId(process.env.EMAILJS_TEMPLATE_EMAIL_CHANGE), withRecipient(email, name, {
     subject: 'Verify your new email address',

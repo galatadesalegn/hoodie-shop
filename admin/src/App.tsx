@@ -12,6 +12,7 @@ const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminAdmins = lazy(() => import('./pages/AdminAdmins'));
 const AdminSecurityLogs = lazy(() => import('./pages/AdminSecurityLogs'));
+const VerifyEmailChangePage = lazy(() => import('./pages/VerifyEmailChangePage'));
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
 
 const Loader = () => (
@@ -31,6 +32,7 @@ const App: React.FC = () => {
           <Suspense fallback={<Loader />}>
             <Routes>
               <Route path="/login" element={<AdminLoginPage />} />
+              <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
 
               <Route path="/" element={
                 <ProtectedRoute roles={['admin', 'superadmin']}>

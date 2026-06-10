@@ -16,25 +16,21 @@ const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { login } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      // The login service returns the user data
-      const { data } = await api.post('/auth/login', { email, password });
-      const loggedUser = data.data.user;
-
+      const loggedUser = await login(email, password);
       if (loggedUser.role !== 'admin' && loggedUser.role !== 'superadmin') {
         setError('Access denied. This terminal is for administrators only.');
-        await api.post('/auth/logout'); // Log them out immediately
+        await api.post('/auth/logout');
         setLoading(false);
         return;
       }
-
-      // If they are admin, proceed to update state using AuthContext
-      // Tokens are stored in httpOnly cookies by the backend
-      window.location.href = '/';
+      navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid administrator credentials.');
       setLoading(false);

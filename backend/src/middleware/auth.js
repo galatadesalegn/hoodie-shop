@@ -20,10 +20,14 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = verifyAccessToken(token);
-    const user = await User.findById(decoded.id).select('+isActive');
+    const user = await User.findById(decoded.id).select('+isActive +passwordChangedAt');
 
     if (!user || !user.isActive) {
       return next(new AppError('User no longer exists or is deactivated.', 401));
+    }
+
+    if (user.passwordChangedAt && decoded.iat * 1000 < user.passwordChangedAt.getTime()) {
+      return next(new AppError('Invalid token. Please log in again.', 401));
     }
 
     req.user = user;

@@ -15,12 +15,13 @@ const TABS = [
 ];
 
 const AdminSettings: React.FC = () => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
 
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
+    username: user?.username || '',
     email: user?.email || '',
   });
   const [passForm, setPassForm] = useState({
@@ -31,6 +32,17 @@ const AdminSettings: React.FC = () => {
   
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  
+  // Email verification state
+  const [emailVerification, setEmailVerification] = useState<{
+    pendingEmail: string | null;
+    otp: string;
+    step: 'idle' | 'pending' | 'verifying';
+  }>({
+    pendingEmail: null,
+    otp: '',
+    step: 'idle',
+  });
 
   // Social Media State
   const [socialForm, setSocialForm] = useState({
@@ -46,6 +58,7 @@ const AdminSettings: React.FC = () => {
     if (user) {
       setProfileForm({
         name: user.name || '',
+        username: user.username || '',
         email: user.email || '',
       });
     }
@@ -63,12 +76,62 @@ const AdminSettings: React.FC = () => {
     setSaving(false);
   };
 
+  const requestEmailVerification = async () => {
+    if (profileForm.email === user?.email) {
+      setMsg({ type: 'error', text: 'Please enter a different email address.' });
+      return;
+    }
+    if (!profileForm.email) {
+      setMsg({ type: 'error', text: 'Email is required.' });
+      return;
+    }
+    setSaving(true);
+    setMsg(null);
+    try {
+      await api.patch('/admin/profile', { email: profileForm.email });
+      setEmailVerification({
+        pendingEmail: profileForm.email,
+        otp: '',
+        step: 'pending',
+      });
+      setMsg({ type: 'success', text: 'Verification code sent to your new email.' });
+    } catch (err: any) {
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to request email verification.' });
+    }
+    setSaving(false);
+  };
+
+  const verifyEmailOtp = async () => {
+    if (!emailVerification.otp || emailVerification.otp.length !== 6) {
+      setMsg({ type: 'error', text: 'Please enter a valid 6-digit code.' });
+      return;
+    }
+    setSaving(true);
+    setMsg(null);
+    try {
+      await api.post('/admin/verify-email-otp', {
+        email: emailVerification.pendingEmail,
+        otp: emailVerification.otp,
+      });
+      setEmailVerification({
+        pendingEmail: null,
+        otp: '',
+        step: 'idle',
+      });
+      await refreshUser();
+      setMsg({ type: 'success', text: 'Email verified and updated successfully.' });
+    } catch (err: any) {
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to verify email.' });
+    }
+    setSaving(false);
+  };
+
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMsg(null);
     try {
-      await api.patch('/admin/profile', { name: profileForm.name, email: profileForm.email });
+      await api.patch('/admin/profile', { name: profileForm.name, username: profileForm.username });
       await refreshUser();
       setMsg({ type: 'success', text: 'Profile updated successfully.' });
     } catch (err: any) {
@@ -91,7 +154,9 @@ const AdminSettings: React.FC = () => {
         newPassword: passForm.newPassword 
       });
       setPassForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setMsg({ type: 'success', text: 'Password changed successfully.' });
+      setMsg({ type: 'success', text: 'Password changed successfully. Please log in again.' });
+      await logout();
+      window.location.href = '/login';
     } catch (err: any) {
       setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to change password.' });
     }
@@ -278,7 +343,7 @@ const AdminSettings: React.FC = () => {
                   </div>
 
                   <form onSubmit={saveProfile} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Full Name</label>
                         <input
@@ -289,15 +354,61 @@ const AdminSettings: React.FC = () => {
                           placeholder="Enter your full name"
                         />
                       </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Username</label>
+                        <input
+                          type="text"
+                          value={profileForm.username}
+                          onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
+                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="Enter a username"
+                        />
+                      </div>
+
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Email Address</label>
-                        <input
-                          type="email"
-                          value={profileForm.email}
-                          onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                          placeholder="Enter your email address"
-                        />
+                        <div className="space-y-2">
+                          <input
+                            type="email"
+                            value={profileForm.email}
+                            onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                            disabled={emailVerification.step === 'pending'}
+                            className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+                            placeholder="Enter your email address"
+                          />
+                          {profileForm.email !== user?.email && emailVerification.step === 'idle' && (
+                            <button
+                              type="button"
+                              onClick={requestEmailVerification}
+                              disabled={saving}
+                              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all disabled:opacity-50"
+                            >
+                              {saving ? 'Sending...' : 'Request Verification'}
+                            </button>
+                          )}
+                          {emailVerification.step === 'pending' && (
+                            <div className="space-y-2 p-4 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-400 rounded-lg">
+                              <p className="text-xs font-bold text-indigo-700 dark:text-indigo-200">Verification code sent to {emailVerification.pendingEmail}</p>
+                              <input
+                                type="text"
+                                maxLength={6}
+                                value={emailVerification.otp}
+                                onChange={(e) => setEmailVerification({ ...emailVerification, otp: e.target.value.replace(/\D/g, '') })}
+                                placeholder="000000"
+                                className="w-full bg-white dark:bg-white/5 border border-indigo-300 dark:border-indigo-400 rounded-lg px-4 py-2 text-sm font-bold tracking-widest text-center focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={verifyEmailOtp}
+                                disabled={saving || emailVerification.otp.length !== 6}
+                                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-green-700 transition-all disabled:opacity-50"
+                              >
+                                {saving ? 'Verifying...' : 'Verify Email'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-4">
@@ -348,6 +459,16 @@ const AdminSettings: React.FC = () => {
                           placeholder="••••••••"
                         />
                       </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-4">
+                      <button
+                        type="button"
+                        onClick={async () => await savePassword({ preventDefault: () => {} } as any)}
+                        disabled={saving}
+                        className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50"
+                      >
+                        {saving ? 'Saving...' : 'Change Password'}
+                      </button>
                     </div>
                   </form>
                 </section>
