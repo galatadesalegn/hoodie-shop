@@ -21,6 +21,7 @@ import {
   Smile,
   Plus
 } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import api from '../../services/api';
 import { Hoodie } from '../../types';
 import { FALLBACK_HOODIES } from '../../constants';
@@ -57,6 +58,16 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-noir transition-colors duration-500">
+      <Helmet>
+        <title>AXIS | Premium Archive Hoodies</title>
+        <meta name="description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette." />
+        <meta property="og:title" content="AXIS | Premium Archive Hoodies" />
+        <meta property="og:description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="AXIS | Premium Archive Hoodies" />
+        <meta name="twitter:description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette." />
+      </Helmet>
       <Navbar />
 
       {/* ——— HERO ——— */}

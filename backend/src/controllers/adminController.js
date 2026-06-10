@@ -1,8 +1,10 @@
 import User from '../models/User.js';
 import SecurityLog from '../models/SecurityLog.js';
+import crypto from 'crypto';
 import { logSecurityEvent, getClientInfo } from '../utils/securityLog.js';
 import { AppError } from '../utils/response.js';
 import { uploadAvatar } from '../config/cloudinary.js';
+import { sendEmailChangeVerification } from '../utils/email.js';
 
 // Super Admin: Get all admins
 export const getAdmins = async (req, res, next) => {
@@ -91,12 +93,60 @@ export const getCustomers = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const { name, username, email } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+emailChangeToken +emailChangeExpires +pendingEmail');
 
-    Object.assign(user, { name, username, email });
-    await user.save();
+    if (name) user.name = name;
+    if (username) user.username = username;
+    
+    let emailChangeStarted = false;
+    if (email && email !== user.email) {
+      const token = user.generateEmailChangeToken(email);
+      await user.save({ validateBeforeSave: false });
+      await sendEmailChangeVerification(email, user.name, token);
+      emailChangeStarted = true;
+    } else {
+      await user.save();
+    }
 
-    res.json({ success: true, message: 'Profile updated.', data: { user } });
+    res.json({ 
+      success: true, 
+      message: emailChangeStarted 
+        ? 'Profile updated. A verification link has been sent to your new email.' 
+        : 'Profile updated.', 
+      data: { user } 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Verify email change
+export const verifyEmailChange = async (req, res, next) => {
+  try {
+    const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await User.findOne({
+      emailChangeToken: hashed,
+      emailChangeExpires: { $gt: Date.now() },
+    }).select('+emailChangeToken +emailChangeExpires +pendingEmail');
+
+    if (!user) return next(new AppError('Invalid or expired verification link.', 400));
+
+    const oldEmail = user.email;
+    user.email = user.pendingEmail;
+    user.pendingEmail = undefined;
+    user.emailChangeToken = undefined;
+    user.emailChangeExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    await logSecurityEvent({ 
+      event: 'email_changed', 
+      userId: user._id, 
+      ...getClientInfo(req), 
+      details: { from: oldEmail, to: user.email },
+      severity: 'medium'
+    });
+
+    res.json({ success: true, message: 'Email updated successfully!' });
   } catch (error) {
     next(error);
   }

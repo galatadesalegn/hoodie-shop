@@ -10,6 +10,7 @@ import {
   Star, 
   ChevronRight 
 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import api from '../../services/api';
 import { Hoodie } from '../../types';
 import { FALLBACK_HOODIES } from '../../constants';
@@ -155,9 +156,12 @@ const ProductDetailPage: React.FC = () => {
               <h1 className="text-6xl font-black text-noir dark:text-white lowercase tracking-tight">
                 {hoodie.name.split(' ')[0].toLowerCase()}
               </h1>
-              <p className="text-sm text-noir/60 dark:text-white/60 leading-relaxed max-w-lg font-medium">
-                * {hoodie.description} * Perfect for any occasion, combining comfort with a sleek modern design.
-              </p>
+              <div 
+                className="text-sm text-noir/60 dark:text-white/60 leading-relaxed max-w-lg font-medium"
+                dangerouslySetInnerHTML={{ 
+                  __html: `* ${DOMPurify.sanitize(hoodie.description)} * Perfect for any occasion, combining comfort with a sleek modern design.` 
+                }}
+              />
               <div className="text-4xl font-black text-noir dark:text-white tracking-tight">
                 ETB {(hoodie.discountPrice || hoodie.price).toLocaleString()}
               </div>

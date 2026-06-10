@@ -41,3 +41,21 @@ export const uploadLimiter = createLimiter(
   20,
   'Too many upload requests. Please try again later.'
 );
+
+export const adminActionLimiter = createLimiter(
+  60 * 60 * 1000, // 1 hour
+  50,
+  'Too many administrative actions. Please slow down.'
+);
+
+export const securityLogLimiter = createLimiter(
+  15 * 60 * 1000, // 15 minutes
+  20,
+  'Security log access limit exceeded. Please try again later.'
+);
+
+export const emailChangeLimiter = createLimiter(
+  60 * 60 * 1000, // 1 hour
+  5,
+  'Too many email change requests. Please try again after 1 hour.'
+);

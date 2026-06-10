@@ -1,48 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Settings, User, Bell, Shield, CreditCard, 
-  Search, HelpCircle, Upload, 
-  CheckCircle, AlertCircle, Trash2, Power,
-  Globe, Mail, DollarSign, Clock, MapPin,
-  Database, Zap, Beaker, ChevronRight,
+  Settings, User, Bell, HelpCircle, Upload, 
+  CheckCircle, AlertCircle, Power,
+  Globe,
   Instagram, Twitter, Facebook, Youtube
 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const TABS = [
-  { id: 'general', label: 'General', icon: <Settings size={18} /> },
   { id: 'profile', label: 'Profile', icon: <User size={18} /> },
+  { id: 'general', label: 'General', icon: <Settings size={18} /> },
 ];
 
 const AdminSettings: React.FC = () => {
   const { user, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('general');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('profile');
 
-  // General Form State
-  const [generalForm, setGeneralForm] = useState({
-    storeName: 'Enterprise Suite Manager',
-    storeEmail: 'admin@enterprise.com',
-    currency: 'USD - United States Dollar',
-    timezone: '(GMT-05:00) Eastern Time',
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      zip: ''
-    }
-  });
-
-  // Toggles
-  const [toggles, setToggles] = useState({
-    backups: true,
-    apiAccess: false,
-    betaFeatures: false
-  });
-
-  // Profile Form State (Existing)
+  // Profile Form State
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -58,30 +34,32 @@ const AdminSettings: React.FC = () => {
 
   // Social Media State
   const [socialForm, setSocialForm] = useState({
-    instagram: 'https://instagram.com/enterprise',
-    twitter: 'https://twitter.com/enterprise',
-    facebook: 'https://facebook.com/enterprise',
-    youtube: 'https://youtube.com/c/enterprise',
-    website: 'https://enterprise.com'
+    instagram: '',
+    twitter: '',
+    facebook: '',
+    youtube: '',
+    website: ''
   });
+
+  // Pre-fill profile form when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || '',
+      });
+    }
+  }, [user]);
 
   const saveSocial = async () => {
     setSaving(true);
     try {
-      // API call would go here
+      // API call would go here - e.g. api.patch('/admin/settings/social', socialForm)
       setMsg({ type: 'success', text: 'Social media settings updated.' });
       setTimeout(() => setMsg(null), 3000);
     } catch (err: any) {
-      setMsg({ type: 'error', text: 'Failed to update social media settings.' });
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update social media settings.' });
     }
-    setSaving(false);
-  };
-
-  const saveGeneral = async () => {
-    setSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setMsg({ type: 'success', text: 'General settings updated.' });
     setSaving(false);
   };
 
@@ -90,11 +68,11 @@ const AdminSettings: React.FC = () => {
     setSaving(true);
     setMsg(null);
     try {
-      await api.patch('/admin/profile', { name: profileForm.name });
+      await api.patch('/admin/profile', { name: profileForm.name, email: profileForm.email });
       await refreshUser();
-      setMsg({ type: 'success', text: 'Name updated successfully.' });
+      setMsg({ type: 'success', text: 'Profile updated successfully.' });
     } catch (err: any) {
-      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update name.' });
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update profile.' });
     }
     setSaving(false);
   };
@@ -125,6 +103,7 @@ const AdminSettings: React.FC = () => {
     if (!file) return;
     const fd = new FormData();
     fd.append('avatar', file);
+    setSaving(true);
     try {
       await api.post('/admin/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       await refreshUser();
@@ -132,32 +111,8 @@ const AdminSettings: React.FC = () => {
     } catch (err: any) {
       setMsg({ type: 'error', text: err.response?.data?.message || 'Upload failed.' });
     }
+    setSaving(false);
   };
-
-  const Toggle = ({ enabled, onChange, label, description, icon, statusLabel }: any) => (
-    <div className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-[32px] p-8 flex items-start justify-between shadow-sm">
-      <div className="flex gap-6">
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${enabled ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400'}`}>
-          {icon}
-        </div>
-        <div>
-          <h4 className="text-base font-black text-noir dark:text-white uppercase tracking-tight">{label}</h4>
-          <p className="text-sm text-noir/40 dark:text-white/40 mt-1 max-w-[240px] font-medium tracking-tight">{description}</p>
-          <div className="mt-6 flex items-center gap-2">
-            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg ${enabled ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
-              {statusLabel || (enabled ? 'ACTIVE' : 'DISABLED')}
-            </span>
-          </div>
-        </div>
-      </div>
-      <button 
-        onClick={() => onChange(!enabled)}
-        className={`w-14 h-7 rounded-full transition-colors relative ${enabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-white/10'}`}
-      >
-        <div className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${enabled ? 'translate-x-7' : 'translate-x-0'} shadow-sm`} />
-      </button>
-    </div>
-  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -450,4 +405,3 @@ const AdminSettings: React.FC = () => {
 };
 
 export default AdminSettings;
-

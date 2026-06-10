@@ -13,6 +13,7 @@ import connectDB from './config/database.js';
 import logger from './utils/logger.js';
 import { globalErrorHandler, notFound } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
+import csrf from 'csurf';
 
 import authRoutes from './routes/auth.js';
 import hoodieRoutes from './routes/hoodies.js';
@@ -35,10 +36,18 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'res.cloudinary.com', '*.unsplash.com'],
       connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'fonts.gstatic.com'],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some recharts/framer-motion scenarios, but ideally remove
     },
   },
   crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
 // CORS
@@ -59,19 +68,28 @@ app.use(cookieParser());
 // Sanitize
 app.use(mongoSanitize());
 
-// Logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+// CSRF Protection
+const csrfProtection = csrf({ 
+  cookie: { 
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  } 
+});
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
+// CSRF Token endpoint
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/hoodies', hoodieRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/hoodies', csrfProtection, hoodieRoutes);
+app.use('/api/orders', csrfProtection, orderRoutes);
+app.use('/api/admin', csrfProtection, adminRoutes);
 
 // 404
 app.use(notFound);

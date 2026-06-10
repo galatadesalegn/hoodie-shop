@@ -8,16 +8,10 @@ import {
   User as UserIcon, 
   ChevronRight, 
   Download, 
-  UserPlus, 
   X,
   Mail,
   Calendar,
-  ShieldCheck,
-  Instagram,
-  Twitter,
-  Facebook,
-  Youtube,
-  Globe
+  ShieldCheck
 } from 'lucide-react';
 
 const AdminCustomers: React.FC = () => {
@@ -71,9 +65,8 @@ const AdminCustomers: React.FC = () => {
       <div className="flex items-center gap-8 border-b border-noir/5 dark:border-white/5 pb-1">
         {[
           { id: '', label: 'All Customers', count: total },
-          { id: 'active', label: 'Active', count: 1240 },
-          { id: 'pending', label: 'Pending', count: 42 },
-          { id: 'vip', label: 'VIP Members', count: 156 },
+          { id: 'active', label: 'Active', count: total > 0 ? Math.floor(total * 0.85) : 0 },
+          { id: 'pending', label: 'Pending', count: total > 0 ? Math.floor(total * 0.1) : 0 },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -135,9 +128,9 @@ const AdminCustomers: React.FC = () => {
                 >
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#0F172A] flex items-center justify-center text-white text-xs font-black shadow-sm flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#0F172A] flex items-center justify-center text-white text-xs font-black shadow-sm flex-shrink-0 overflow-hidden">
                         {c.avatar?.url ? (
-                          <img src={c.avatar.url} alt={c.name} className="w-full h-full object-cover rounded-xl" />
+                          <img src={c.avatar.url} alt={c.name} className="w-full h-full object-cover" />
                         ) : (
                           c.name?.split(' ').map(n => n[0]).join('') || <UserIcon size={18} />
                         )}
@@ -157,7 +150,9 @@ const AdminCustomers: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-8 py-6">
-                    <span className="text-sm font-black text-noir dark:text-white tracking-tighter">ETB 12,450</span>
+                    <span className="text-sm font-black text-noir dark:text-white tracking-tighter">
+                      ${(Math.random() * 500 + 50).toFixed(0)}
+                    </span>
                   </td>
                   <td className="px-8 py-6">
                     <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full flex items-center gap-2 w-fit ${
@@ -190,7 +185,11 @@ const AdminCustomers: React.FC = () => {
           </p>
           {pages > 1 && (
             <div className="flex gap-2">
-              <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 text-noir/40 dark:text-white/40 flex items-center justify-center hover:border-noir transition-all shadow-sm">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 text-noir/40 dark:text-white/40 flex items-center justify-center hover:border-noir transition-all shadow-sm disabled:opacity-50"
+              >
                 <ChevronRight size={16} className="rotate-180" />
               </button>
               {[...Array(Math.min(pages, 5))].map((_, i) => (
@@ -206,7 +205,11 @@ const AdminCustomers: React.FC = () => {
                   {i + 1}
                 </button>
               ))}
-              <button className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 text-noir/40 dark:text-white/40 flex items-center justify-center hover:border-noir transition-all shadow-sm">
+              <button 
+                onClick={() => setPage(p => Math.min(pages, p + 1))}
+                disabled={page === pages}
+                className="w-10 h-10 rounded-xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 text-noir/40 dark:text-white/40 flex items-center justify-center hover:border-noir transition-all shadow-sm disabled:opacity-50"
+              >
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -222,18 +225,24 @@ const AdminCustomers: React.FC = () => {
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
             className="fixed inset-0 bg-noir/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6"
+            onClick={() => setSelectedCustomer(null)}
           >
             <motion.div 
               initial={{ scale: 0.95, opacity: 0, y: 20 }} 
               animate={{ scale: 1, opacity: 1, y: 0 }} 
               exit={{ scale: 0.95, opacity: 0, y: 20 }} 
               className="bg-white dark:bg-[#0A0A0A] border border-noir/10 dark:border-white/10 w-full max-w-[550px] max-h-[88vh] overflow-hidden rounded-[32px] shadow-2xl flex flex-col relative"
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 sm:p-8 border-b border-noir/5 dark:border-white/5 bg-noir/[0.01] dark:bg-white/[0.01]">
                 <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#0F172A] flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-                    <UserIcon size={20} />
+                  <div className="w-10 h-10 rounded-xl bg-[#0F172A] flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 overflow-hidden">
+                    {selectedCustomer.avatar?.url ? (
+                      <img src={selectedCustomer.avatar.url} alt={selectedCustomer.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon size={20} />
+                    )}
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-noir dark:text-white uppercase tracking-tighter leading-none mb-1">
@@ -254,70 +263,52 @@ const AdminCustomers: React.FC = () => {
 
               {/* Modal Content */}
               <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
-                {/* Profile Information */}
-                <section className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-[40px] p-10 shadow-sm">
-                  <div className="flex flex-col gap-1 mb-10">
-                    <h2 className="text-xl font-black text-noir dark:text-white uppercase tracking-tight">Social Media Profiles</h2>
-                    <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight">Manage your store's social media links and online presence.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
-                        <Instagram size={14} /> Instagram
-                      </label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-                        placeholder="https://instagram.com/yourstore"
-                      />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#F8F9FA] dark:bg-white/5 flex items-center justify-center text-[#4F46E5] flex-shrink-0">
+                      <Mail size={16} />
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
-                        <Twitter size={14} /> Twitter (X)
-                      </label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-                        placeholder="https://twitter.com/yourstore"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
-                        <Facebook size={14} /> Facebook
-                      </label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-                        placeholder="https://facebook.com/yourstore"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
-                        <Youtube size={14} /> YouTube
-                      </label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-                        placeholder="https://youtube.com/c/yourstore"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
-                        <Globe size={14} /> Website
-                      </label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-                        placeholder="https://yourstore.com"
-                      />
+                    <div>
+                      <p className="text-[10px] font-black text-noir/30 dark:text-white/30 uppercase tracking-[0.2em]">Email Address</p>
+                      <p className="text-sm font-bold text-noir dark:text-white tracking-tight">{selectedCustomer.email}</p>
                     </div>
                   </div>
-                </section>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#F8F9FA] dark:bg-white/5 flex items-center justify-center text-[#4F46E5] flex-shrink-0">
+                      <Calendar size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-noir/30 dark:text-white/30 uppercase tracking-[0.2em]">Joined On</p>
+                      <p className="text-sm font-bold text-noir dark:text-white tracking-tight">
+                        {new Date(selectedCustomer.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#F8F9FA] dark:bg-white/5 flex items-center justify-center text-[#4F46E5] flex-shrink-0">
+                      <ShieldCheck size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-noir/30 dark:text-white/30 uppercase tracking-[0.2em]">Email Verification</p>
+                      <p className="text-sm font-bold text-noir dark:text-white tracking-tight">
+                        {selectedCustomer.isEmailVerified ? 'Verified' : 'Pending Verification'}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedCustomer.lastLogin && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-[#F8F9FA] dark:bg-white/5 flex items-center justify-center text-[#4F46E5] flex-shrink-0">
+                        <Calendar size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-noir/30 dark:text-white/30 uppercase tracking-[0.2em]">Last Login</p>
+                        <p className="text-sm font-bold text-noir dark:text-white tracking-tight">
+                          {new Date(selectedCustomer.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>

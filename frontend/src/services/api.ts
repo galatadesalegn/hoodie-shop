@@ -3,13 +3,26 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: '/api',
   withCredentials: true,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  },
 });
 
-// Request interceptor - attach access token
+// Fetch CSRF token on startup
+const fetchCsrfToken = async () => {
+  try {
+    const { data } = await axios.get('/api/csrf-token', { withCredentials: true });
+    api.defaults.headers.common['X-CSRF-Token'] = data.csrfToken;
+  } catch (err) {
+    console.error('Failed to fetch CSRF token', err);
+  }
+};
+
+fetchCsrfToken();
+
+// Request interceptor - attach access token (REMOVED - Using Cookies)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -44,15 +57,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await api.post('/auth/refresh');
-        const newToken = data.data.accessToken;
-        localStorage.setItem('accessToken', newToken);
-        processQueue(null, newToken);
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        await api.post('/auth/refresh');
+        processQueue(null, null);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
         window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(refreshError);
       } finally {

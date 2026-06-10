@@ -52,6 +52,9 @@ const userSchema = new mongoose.Schema(
     loginAttempts: { type: Number, default: 0, select: false },
     lockUntil: { type: Date, select: false },
     refreshTokens: [{ type: String, select: false }],
+    pendingEmail: { type: String, select: false },
+    emailChangeToken: { type: String, select: false },
+    emailChangeExpires: { type: Date, select: false },
     isActive: { type: Boolean, default: true },
     lastLogin: { type: Date },
   },
@@ -105,6 +108,15 @@ userSchema.methods.generatePasswordResetToken = function () {
   this.passwordResetToken = crypto.createHash('sha256').update(token).digest('hex');
   this.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 min
   this.passwordResetUsed = false;
+  return token;
+};
+
+// Generate email change token
+userSchema.methods.generateEmailChangeToken = function (newEmail) {
+  const token = crypto.randomBytes(32).toString('hex');
+  this.emailChangeToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.emailChangeExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  this.pendingEmail = newEmail;
   return token;
 };
 

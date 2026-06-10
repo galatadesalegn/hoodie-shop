@@ -5,10 +5,7 @@ import {
   ShoppingCart, 
   Users, 
   TrendingUp, 
-  Eye, 
   Calendar, 
-  Download, 
-  Search, 
   Bell, 
   HelpCircle,
   MoreHorizontal,
@@ -19,7 +16,7 @@ import {
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, ComposedChart, Bar, Line
+  PieChart, Pie, Cell, ComposedChart, Bar, Line
 } from 'recharts';
 import api from '../../services/api';
 import type { DashboardStats, Order } from '../../types';
@@ -34,7 +31,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: '#EF4444',
 };
 
-const DUMMY_REVENUE_DATA = [
+const DUMMY_REVENUE_DATA: { _id: string; revenue: number; orders: number }[] = [
   { _id: 'JAN', revenue: 4500, orders: 3200 },
   { _id: 'FEB', revenue: 5200, orders: 4100 },
   { _id: 'MAR', revenue: 4800, orders: 4800 },
@@ -47,6 +44,12 @@ const DUMMY_REVENUE_DATA = [
   { _id: 'OCT', revenue: 7500, orders: 6800 },
   { _id: 'NOV', revenue: 8200, orders: 7500 },
   { _id: 'DEC', revenue: 7800, orders: 8500 },
+];
+
+const DUMMY_CATEGORY_DATA: { _id: string; count: number }[] = [
+  { _id: 'Streetwear', count: 45 },
+  { _id: 'Winter Wear', count: 30 },
+  { _id: 'Oversized', count: 25 }
 ];
 
 const AdminDashboard: React.FC = () => {
@@ -62,7 +65,17 @@ const AdminDashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const StatCard = ({ title, value, icon, trend, trendValue }: { title: string; value: string; icon: React.ReactNode; trend: 'up' | 'down'; trendValue: string }) => (
+  const chartData = stats?.revenueData || DUMMY_REVENUE_DATA;
+  const categoryData = stats?.categoryStats || DUMMY_CATEGORY_DATA;
+  const displayStats = stats;
+
+  const StatCard = ({ title, value, icon, trend, trendValue }: { 
+    title: string; 
+    value: string | number; 
+    icon: React.ReactNode; 
+    trend: 'up' | 'down'; 
+    trendValue: string; 
+  }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -72,14 +85,14 @@ const AdminDashboard: React.FC = () => {
         <div className="w-12 h-12 rounded-2xl bg-[#F8F9FA] dark:bg-white/10 flex items-center justify-center text-[#4F46E5] dark:text-white group-hover:bg-[#4F46E5] group-hover:text-white transition-all duration-500 shadow-sm">
           {icon}
         </div>
-        <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
           {trend === 'up' ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
           {trendValue}
         </div>
       </div>
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-noir/30 dark:text-white/30 mb-2">{title}</p>
       <p className="text-3xl font-black text-noir dark:text-white tracking-tight leading-none">
-        {loading ? '—' : value}
+        {loading ? '—' : typeof value === 'number' ? value.toLocaleString() : value}
       </p>
     </motion.div>
   );
@@ -89,7 +102,6 @@ const AdminDashboard: React.FC = () => {
       {/* Header / Top Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-noir/5 dark:border-white/5">
         <div className="flex-1">
-          {/* Search bar removed */}
         </div>
         <div className="flex items-center gap-6">
           <button className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 flex items-center justify-center text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-all relative shadow-sm">
@@ -129,10 +141,34 @@ const AdminDashboard: React.FC = () => {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Sales" value={`$${(128430).toLocaleString()}`} icon={<CreditCard size={20} />} trend="up" trendValue="+12%" />
-        <StatCard title="Total Orders" value={(1420).toLocaleString()} icon={<ShoppingCart size={20} />} trend="up" trendValue="+5%" />
-        <StatCard title="Conversion Rate" value="3.2%" icon={<TrendingUp size={20} />} trend="down" trendValue="-1%" />
-        <StatCard title="Avg. Order Value" value="$90" icon={<Package size={20} />} trend="up" trendValue="+2%" />
+        <StatCard 
+          title="Total Orders" 
+          value={displayStats?.totalOrders || 1420} 
+          icon={<ShoppingCart size={20} />} 
+          trend="up" 
+          trendValue="+12%" 
+        />
+        <StatCard 
+          title="Total Products" 
+          value={displayStats?.totalProducts || 128} 
+          icon={<Package size={20} />} 
+          trend="up" 
+          trendValue="+5%" 
+        />
+        <StatCard 
+          title="Total Customers" 
+          value={displayStats?.totalCustomers || 2560} 
+          icon={<Users size={20} />} 
+          trend="down" 
+          trendValue="-1%" 
+        />
+        <StatCard 
+          title="Recent Activity" 
+          value="All Green" 
+          icon={<TrendingUp size={20} />} 
+          trend="up" 
+          trendValue="+2%" 
+        />
       </div>
 
       {/* Charts Section */}
@@ -156,13 +192,13 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-[#4F46E5]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40">Growth</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40">Orders</span>
               </div>
             </div>
           </div>
           <div className="h-[320px] min-h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={DUMMY_REVENUE_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
@@ -182,7 +218,6 @@ const AdminDashboard: React.FC = () => {
                   tickLine={false} 
                   tick={{ fontSize: 10, fontWeight: 700, fill: isDark ? '#6B7280' : '#9CA3AF' }}
                   tickFormatter={(value) => value >= 1000 ? `$${value/1000}k` : value}
-                  hide
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -224,19 +259,15 @@ const AdminDashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie 
-                  data={[
-                    {_id: 'Streetwear', count: 45}, 
-                    {_id: 'Winter Wear', count: 30}, 
-                    {_id: 'Oversized', count: 25}
-                  ]} 
+                  data={categoryData} 
                   dataKey="count" 
                   innerRadius={70} 
                   outerRadius={90} 
                   paddingAngle={8}
                 >
-                  <Cell fill="#4F46E5" />
-                  <Cell fill="#818CF8" />
-                  <Cell fill="#312E81" />
+                  {categoryData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={['#4F46E5', '#818CF8', '#312E81'][index % 3]} />
+                  ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
@@ -246,17 +277,13 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="space-y-4">
-            {[
-              { label: 'Streetwear', value: '45%', color: 'bg-[#4F46E5]' },
-              { label: 'Winter Wear', value: '30%', color: 'bg-[#818CF8]' },
-              { label: 'Oversized', value: '25%', color: 'bg-[#312E81]' }
-            ].map((cat, i) => (
+            {categoryData.map((cat: { _id: string; count: number }, i: number) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${cat.color}`} />
-                  <span className="text-[11px] font-black text-noir/40 dark:text-white/40 uppercase tracking-widest">{cat.label}</span>
+                  <div className={`w-2 h-2 rounded-full ${i === 0 ? 'bg-[#4F46E5]' : i === 1 ? 'bg-[#818CF8]' : 'bg-[#312E81]'}`} />
+                  <span className="text-[11px] font-black text-noir/40 dark:text-white/40 uppercase tracking-widest">{cat._id}</span>
                 </div>
-                <span className="text-[11px] font-black text-noir dark:text-white uppercase tracking-widest">{cat.value}</span>
+                <span className="text-[11px] font-black text-noir dark:text-white uppercase tracking-widest">{cat.count}%</span>
               </div>
             ))}
           </div>
@@ -272,7 +299,19 @@ const AdminDashboard: React.FC = () => {
             <button className="text-[10px] font-black text-[#4F46E5] uppercase tracking-[0.2em] border-b-2 border-indigo-500/20 pb-1">View All</button>
           </div>
           <div className="space-y-8">
-            {[
+            {displayStats?.recentOrders?.length ? displayStats.recentOrders.slice(0, 4).map((order, i) => (
+              <div key={order._id} className="flex items-start gap-6 group cursor-pointer">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110 bg-indigo-50 text-indigo-500">
+                  <ShoppingCart size={18} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-noir dark:text-white uppercase tracking-tight mb-1">{order.orderNumber}</h4>
+                  <p className="text-xs text-noir/30 dark:text-white/30 font-medium tracking-tight">
+                    {new Date(order.createdAt).toLocaleDateString()} • ${order.totalAmount}
+                  </p>
+                </div>
+              </div>
+            )) : [
               { icon: <ShoppingCart size={18} />, title: 'New Order #8920', sub: '2 minutes ago • $124.00', color: 'text-indigo-500 bg-indigo-50' },
               { icon: <Users size={18} />, title: 'New Customer registered', sub: '45 minutes ago • Los Angeles, CA', color: 'text-violet-500 bg-violet-50' },
               { icon: <Package size={18} />, title: 'Inventory Alert', sub: '2 hours ago • 5 units remaining', color: 'text-amber-500 bg-amber-50' },
@@ -306,7 +345,28 @@ const AdminDashboard: React.FC = () => {
               <div className="col-span-2 text-center">Revenue</div>
               <div className="col-span-2 text-center">Stock</div>
             </div>
-            {[
+            {displayStats?.mostViewed?.length ? displayStats.mostViewed.slice(0, 3).map((product, i) => (
+              <div key={product._id} className="grid grid-cols-12 items-center group cursor-pointer hover:bg-noir/[0.01] dark:hover:bg-white/[0.01] p-2 rounded-2xl transition-colors">
+                <div className="col-span-6 flex items-center gap-6">
+                  <div className="w-16 h-20 rounded-2xl bg-[#F8F9FA] dark:bg-white/5 overflow-hidden shadow-sm border border-noir/5 dark:border-white/5">
+                    {product.images[0] && <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />}
+                  </div>
+                  <div className="overflow-hidden">
+                    <h4 className="text-base font-black text-noir dark:text-white uppercase tracking-tight truncate mb-1">{product.name}</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest">Archive Item</span>
+                      <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                      <span className="text-[10px] font-black text-[#4F46E5] uppercase tracking-widest">{product.category}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-2 text-center text-xs font-black text-noir dark:text-white tracking-tighter">{product.soldCount}</div>
+                <div className="col-span-2 text-center text-xs font-black text-noir dark:text-white tracking-tighter">${product.price}</div>
+                <div className="col-span-2 flex justify-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">In Stock</span>
+                </div>
+              </div>
+            )) : [
               { name: 'Classic Oversized Hoodie', price: 89, sales: 412, revenue: 36668, image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=200' },
               { name: 'Streetwear Graphic Hoodie', price: 95, sales: 385, revenue: 36575, image: 'https://images.unsplash.com/photo-1521223890158-f9f7c3d5bab3?w=200' },
               { name: 'Premium Winter Zip-up', price: 120, sales: 245, revenue: 29400, image: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=200' }

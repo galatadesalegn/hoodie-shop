@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, Star, Truck } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight, Shield, Star, Truck, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -64,10 +64,27 @@ const LoginPage: React.FC = () => {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 pb-20">
-        <div className="w-full max-w-[440px]">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 pb-20 relative">
+        <div className="w-full max-w-[440px] relative">
+          {/* Back Arrow */}
+          <Link 
+            to="/" 
+            className="absolute -left-20 top-2 hidden md:flex items-center gap-2 group px-4 py-2 rounded-full hover:bg-noir/5 dark:hover:bg-white/5 transition-all"
+            title="Go back"
+          >
+            <ArrowLeft size={18} className="text-noir/40 dark:text-white/40 group-hover:text-noir dark:group-hover:text-white transition-colors" />
+            <span className="text-[11px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 group-hover:text-noir dark:group-hover:text-white transition-colors">Back</span>
+          </Link>
+
           {/* Header */}
-          <div className="text-center mb-10">
+          <div className="text-center mb-10 relative">
+            <Link 
+              to="/" 
+              className="md:hidden absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-noir/5 dark:bg-white/5"
+            >
+              <ArrowLeft size={14} className="text-noir/40 dark:text-white/40" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40">Back</span>
+            </Link>
             <h1 className="text-[32px] font-bold text-noir dark:text-white tracking-tight mb-3">Welcome back</h1>
             <p className="text-noir/40 dark:text-white/40 text-sm">
               Log in to your account to continue your workflow.

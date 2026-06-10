@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const orderSchema = new mongoose.Schema(
   {
@@ -59,8 +60,11 @@ const orderSchema = new mongoose.Schema(
 // Auto-generate order number
 orderSchema.pre('save', async function (next) {
   if (!this.orderNumber) {
-    const count = await mongoose.model('Order').countDocuments();
-    this.orderNumber = `HV-${String(count + 1).padStart(5, '0')}`;
+    this.orderNumber = 
+      "AXIS-" + 
+      Date.now() + 
+      "-" + 
+      crypto.randomBytes(4).toString("hex").toUpperCase();
   }
   next();
 });

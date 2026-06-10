@@ -86,6 +86,21 @@ export const sendPasswordResetEmail = async (email, name, token) => {
   await sendEmail({ to: email, subject: 'Reset your HoodVault password', html });
 };
 
+export const sendEmailChangeVerification = async (email, name, token) => {
+  const verifyUrl = `${process.env.FRONTEND_URL}/verify-email-change?token=${token}`;
+  const html = baseTemplate(`
+    <h2>Verify Email Change</h2>
+    <p>Hi ${name},</p>
+    <p>You requested to change your email to <strong>${email}</strong>. Please click the button below to verify this change.</p>
+    <p>This link expires in <strong>1 hour</strong>.</p>
+    <a href="${verifyUrl}" class="btn">Verify Change</a>
+    <div class="divider"></div>
+    <p style="font-size:13px;color:#999;">If you didn't request this change, you can safely ignore this email.</p>
+  `);
+
+  await sendEmail({ to: email, subject: 'Verify your new email address', html });
+};
+
 export const sendOrderConfirmationEmail = async (email, name, order) => {
   const itemsHtml = order.items.map(item => `
     <tr>

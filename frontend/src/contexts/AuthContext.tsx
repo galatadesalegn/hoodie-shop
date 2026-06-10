@@ -24,21 +24,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(data.data.user);
     } catch {
       setUser(null);
-      localStorage.removeItem('accessToken');
     }
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      refreshUser().finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    refreshUser().finally(() => setLoading(false));
 
     const handleLogout = () => {
       setUser(null);
-      localStorage.removeItem('accessToken');
     };
     window.addEventListener('auth:logout', handleLogout);
     return () => window.removeEventListener('auth:logout', handleLogout);
@@ -46,8 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { email, password });
-    console.log('Login successful, payload:', data.data);
-    localStorage.setItem('accessToken', data.data.accessToken);
     setUser(data.data.user);
   };
 
@@ -56,7 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await api.post('/auth/logout');
     } catch {}
     setUser(null);
-    localStorage.removeItem('accessToken');
   };
 
   return (
