@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  PieChart, Pie, Cell, Legend, ComposedChart, Bar, Line
 } from 'recharts';
 import api from '../../services/api';
 import type { DashboardStats, Order } from '../../types';
@@ -35,13 +35,18 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const DUMMY_REVENUE_DATA = [
-  { _id: 'Jan', revenue: 45000, orders: 320 },
-  { _id: 'Feb', revenue: 52000, orders: 410 },
-  { _id: 'Mar', revenue: 48000, orders: 380 },
-  { _id: 'Apr', revenue: 61000, orders: 520 },
-  { _id: 'May', revenue: 55000, orders: 480 },
-  { _id: 'Jun', revenue: 67000, orders: 590 },
-  { _id: 'Jul', revenue: 72000, orders: 650 },
+  { _id: 'JAN', revenue: 4500, orders: 3200 },
+  { _id: 'FEB', revenue: 5200, orders: 4100 },
+  { _id: 'MAR', revenue: 4800, orders: 4800 },
+  { _id: 'APR', revenue: 6100, orders: 5200 },
+  { _id: 'MAY', revenue: 5500, orders: 4800 },
+  { _id: 'JUN', revenue: 6700, orders: 7200 },
+  { _id: 'JUL', revenue: 7200, orders: 5500 },
+  { _id: 'AUG', revenue: 6500, orders: 6200 },
+  { _id: 'SEP', revenue: 5800, orders: 4500 },
+  { _id: 'OCT', revenue: 7500, orders: 6800 },
+  { _id: 'NOV', revenue: 8200, orders: 7500 },
+  { _id: 'DEC', revenue: 7800, orders: 8500 },
 ];
 
 const AdminDashboard: React.FC = () => {
@@ -83,13 +88,8 @@ const AdminDashboard: React.FC = () => {
     <div className="space-y-10">
       {/* Header / Top Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-noir/5 dark:border-white/5">
-        <div className="flex-1 max-w-xl relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-noir/20 dark:text-white/20 group-focus-within:text-[#4F46E5] transition-colors" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search orders, customers..." 
-            className="w-full bg-[#F3F4F6] dark:bg-white/5 border-none rounded-2xl py-4 pl-12 pr-6 text-sm focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none"
-          />
+        <div className="flex-1">
+          {/* Search bar removed */}
         </div>
         <div className="flex items-center gap-6">
           <button className="w-12 h-12 rounded-2xl bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 flex items-center justify-center text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-all relative shadow-sm">
@@ -129,54 +129,61 @@ const AdminDashboard: React.FC = () => {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Sales" value={`$${(stats?.revenueData?.reduce((s, d) => s + d.revenue, 0) || 128430).toLocaleString()}`} icon={<CreditCard size={20} />} trend="up" trendValue="+12%" />
-        <StatCard title="Total Orders" value={(stats?.totalOrders || 1420).toLocaleString()} icon={<ShoppingCart size={20} />} trend="up" trendValue="+5%" />
+        <StatCard title="Total Sales" value={`$${(128430).toLocaleString()}`} icon={<CreditCard size={20} />} trend="up" trendValue="+12%" />
+        <StatCard title="Total Orders" value={(1420).toLocaleString()} icon={<ShoppingCart size={20} />} trend="up" trendValue="+5%" />
         <StatCard title="Conversion Rate" value="3.2%" icon={<TrendingUp size={20} />} trend="down" trendValue="-1%" />
         <StatCard title="Avg. Order Value" value="$90" icon={<Package size={20} />} trend="up" trendValue="+2%" />
       </div>
 
       {/* Charts Section */}
-      <div className="grid lg:grid-cols-12 gap-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="grid lg:grid-cols-12 gap-8"
+      >
         {/* Main Area Chart */}
-        <div className="lg:col-span-8 bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
+        <div className="lg:col-span-8 bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between mb-12">
             <div>
-              <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-1">Revenue vs Orders</h2>
-              <p className="text-xs text-noir/30 dark:text-white/30 font-bold uppercase tracking-widest">Monthly growth comparison</p>
+              <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-1">Revenue vs Growth</h2>
+              <p className="text-xs text-noir/30 dark:text-white/30 font-bold uppercase tracking-widest">Monthly performance metrics</p>
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#4F46E5]" />
+                <div className="w-3 h-3 rounded-full bg-[#4F46E5] opacity-20" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40">Revenue</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#818CF8]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40">Orders</span>
+                <div className="w-3 h-3 rounded-full bg-[#4F46E5]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40">Growth</span>
               </div>
             </div>
           </div>
-          <div className="h-[320px] w-full">
+          <div className="h-[320px] min-h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats?.revenueData?.length ? stats.revenueData : DUMMY_REVENUE_DATA}>
+              <ComposedChart data={DUMMY_REVENUE_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
                     <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
                   </linearGradient>
-                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#818CF8" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#818CF8" stopOpacity={0}/>
-                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#00000008" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
                 <XAxis 
                   dataKey="_id" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#9CA3AF' }} 
+                  tick={{ fontSize: 10, fontWeight: 700, fill: isDark ? '#6B7280' : '#9CA3AF' }} 
                   dy={10}
                 />
-                <YAxis hide />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 700, fill: isDark ? '#6B7280' : '#9CA3AF' }}
+                  tickFormatter={(value) => value >= 1000 ? `$${value/1000}k` : value}
+                  hide
+                />
                 <Tooltip 
                   contentStyle={{ 
                     borderRadius: '16px', 
@@ -190,21 +197,34 @@ const AdminDashboard: React.FC = () => {
                     color: isDark ? '#F9FAFB' : '#111827'
                   }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#4F46E5" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
-                <Area type="monotone" dataKey="orders" stroke="#818CF8" strokeWidth={4} fillOpacity={1} fill="url(#colorOrders)" />
-              </AreaChart>
+                <Bar 
+                  dataKey="revenue" 
+                  fill="#4F46E5" 
+                  radius={[10, 10, 0, 0]} 
+                  opacity={0.2}
+                  barSize={40}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="orders" 
+                  stroke="#4F46E5" 
+                  strokeWidth={6} 
+                  dot={false}
+                  animationDuration={2000}
+                />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Sales by Category Pie */}
-        <div className="lg:col-span-4 bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
+        <div className="lg:col-span-4 bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm overflow-hidden">
           <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-10">Sales by Category</h2>
           <div className="h-[240px] relative mb-10">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie 
-                  data={stats?.categoryStats?.length ? stats.categoryStats : [
+                  data={[
                     {_id: 'Streetwear', count: 45}, 
                     {_id: 'Winter Wear', count: 30}, 
                     {_id: 'Oversized', count: 25}
@@ -220,7 +240,7 @@ const AdminDashboard: React.FC = () => {
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <p className="text-2xl font-black text-noir dark:text-white leading-none">100%</p>
               <p className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest mt-1">Total</p>
             </div>
@@ -241,7 +261,7 @@ const AdminDashboard: React.FC = () => {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Bottom Section */}
       <div className="grid lg:grid-cols-2 gap-8">
@@ -286,14 +306,18 @@ const AdminDashboard: React.FC = () => {
               <div className="col-span-2 text-center">Revenue</div>
               <div className="col-span-2 text-center">Stock</div>
             </div>
-            {(stats?.mostViewed?.slice(0, 3) || [1, 2, 3]).map((p: any, i) => (
+            {[
+              { name: 'Classic Oversized Hoodie', price: 89, sales: 412, revenue: 36668, image: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=200' },
+              { name: 'Streetwear Graphic Hoodie', price: 95, sales: 385, revenue: 36575, image: 'https://images.unsplash.com/photo-1521223890158-f9f7c3d5bab3?w=200' },
+              { name: 'Premium Winter Zip-up', price: 120, sales: 245, revenue: 29400, image: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=200' }
+            ].map((p, i) => (
               <div key={i} className="grid grid-cols-12 items-center group cursor-pointer hover:bg-noir/[0.01] dark:hover:bg-white/[0.01] p-2 rounded-2xl transition-colors">
                 <div className="col-span-6 flex items-center gap-6">
                   <div className="w-16 h-20 rounded-2xl bg-[#F8F9FA] dark:bg-white/5 overflow-hidden shadow-sm border border-noir/5 dark:border-white/5">
-                    <img src={p.images?.[0]?.url || "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=200"} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <img src={p.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   </div>
                   <div className="overflow-hidden">
-                    <h4 className="text-base font-black text-noir dark:text-white uppercase tracking-tight truncate mb-1">{p.name || 'Premium Hoodie'}</h4>
+                    <h4 className="text-base font-black text-noir dark:text-white uppercase tracking-tight truncate mb-1">{p.name}</h4>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest">Archive Item</span>
                       <div className="w-1 h-1 rounded-full bg-indigo-500" />
@@ -301,8 +325,8 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="col-span-2 text-center text-xs font-black text-noir dark:text-white tracking-tighter">412</div>
-                <div className="col-span-2 text-center text-xs font-black text-noir dark:text-white tracking-tighter">$32,540</div>
+                <div className="col-span-2 text-center text-xs font-black text-noir dark:text-white tracking-tighter">{p.sales}</div>
+                <div className="col-span-2 text-center text-xs font-black text-noir dark:text-white tracking-tighter">${p.revenue.toLocaleString()}</div>
                 <div className="col-span-2 flex justify-center">
                   <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">In Stock</span>
                 </div>

@@ -2,18 +2,22 @@ import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../services/api';
 import type { User } from '../../types';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   User as UserIcon, 
   ChevronRight, 
   Download, 
   UserPlus, 
-  TrendingUp, 
-  Activity, 
-  Award, 
-  ArrowRight,
-  ShieldCheck
+  X,
+  Mail,
+  Calendar,
+  ShieldCheck,
+  Instagram,
+  Twitter,
+  Facebook,
+  Youtube,
+  Globe
 } from 'lucide-react';
 
 const AdminCustomers: React.FC = () => {
@@ -23,6 +27,7 @@ const AdminCustomers: React.FC = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null);
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -59,12 +64,6 @@ const AdminCustomers: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-4">
-          <button 
-            className="bg-[#4F46E5] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20"
-          >
-            <UserPlus size={16} />
-            Add Customer
-          </button>
         </div>
       </div>
 
@@ -172,6 +171,7 @@ const AdminCustomers: React.FC = () => {
                   </td>
                   <td className="px-8 py-6 text-right">
                     <button 
+                      onClick={() => setSelectedCustomer(c)}
                       className="text-[10px] font-black text-[#4F46E5] uppercase tracking-widest hover:border-b border-[#4F46E5] transition-all"
                     >
                       View Profile
@@ -214,72 +214,115 @@ const AdminCustomers: React.FC = () => {
         </div>
       </div>
 
-      {/* Insight Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Retention Health */}
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Retention Rate</h2>
-            <TrendingUp size={20} className="text-emerald-500" />
-          </div>
-          <div className="flex items-end gap-4 mb-4">
-            <p className="text-[40px] font-black text-noir dark:text-white tracking-tighter leading-none">84.2%</p>
-            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase">+2.1%</span>
-          </div>
-          <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8">
-            Active customer retention is trending upwards this quarter.
-          </p>
-          <div className="w-full h-1.5 bg-noir/5 dark:bg-white/5 rounded-full overflow-hidden">
-            <div className="w-[84.2%] h-full bg-[#4F46E5] rounded-full" />
-          </div>
-        </div>
-
-        {/* Engagement */}
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase">Engagement</h2>
-            <Activity size={20} className="text-[#4F46E5]" />
-          </div>
-          <div className="flex items-end gap-4 mb-4">
-            <p className="text-[40px] font-black text-noir dark:text-white tracking-tighter leading-none">4.2</p>
-            <span className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest ml-1">Orders/Avg</span>
-          </div>
-          <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8">
-            Average transaction frequency per registered member.
-          </p>
-          <div className="flex items-end gap-2 h-10">
-            {[30, 50, 40, 70, 60, 80, 100].map((h, i) => (
-              <div key={i} className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-[#4F46E5]' : 'bg-indigo-100 dark:bg-indigo-900/20'}`} style={{ height: `${h}%` }} />
-            ))}
-          </div>
-        </div>
-
-        {/* VIP Insights */}
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Award size={120} className="text-noir dark:text-white" />
-          </div>
-          <div className="relative z-10 h-full flex flex-col">
-            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-8">VIP Segments</h2>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-500">
-                <ShieldCheck size={24} />
+      {/* Customer Detail Modal */}
+      <AnimatePresence>
+        {selectedCustomer && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 bg-noir/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.95, opacity: 0, y: 20 }} 
+              className="bg-white dark:bg-[#0A0A0A] border border-noir/10 dark:border-white/10 w-full max-w-[550px] max-h-[88vh] overflow-hidden rounded-[32px] shadow-2xl flex flex-col relative"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 sm:p-8 border-b border-noir/5 dark:border-white/5 bg-noir/[0.01] dark:bg-white/[0.01]">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#0F172A] flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                    <UserIcon size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-noir dark:text-white uppercase tracking-tighter leading-none mb-1">
+                      {selectedCustomer.name}
+                    </h2>
+                    <p className="text-[8px] font-bold text-noir/30 dark:text-white/30 uppercase tracking-[0.3em]">
+                      @{selectedCustomer.username}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedCustomer(null)}
+                  className="w-9 h-9 rounded-lg bg-noir/5 dark:bg-white/5 flex items-center justify-center text-noir/40 dark:text-white/40 hover:bg-red-500 hover:text-white transition-all"
+                >
+                  <X size={16} />
+                </button>
               </div>
-              <div>
-                <p className="text-sm font-black text-noir dark:text-white uppercase tracking-tight">156 Elite Clients</p>
-                <p className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest">Revenue share: 42%</p>
+
+              {/* Modal Content */}
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
+                {/* Profile Information */}
+                <section className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-[40px] p-10 shadow-sm">
+                  <div className="flex flex-col gap-1 mb-10">
+                    <h2 className="text-xl font-black text-noir dark:text-white uppercase tracking-tight">Social Media Profiles</h2>
+                    <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight">Manage your store's social media links and online presence.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Instagram size={14} /> Instagram
+                      </label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://instagram.com/yourstore"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Twitter size={14} /> Twitter (X)
+                      </label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://twitter.com/yourstore"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Facebook size={14} /> Facebook
+                      </label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://facebook.com/yourstore"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Youtube size={14} /> YouTube
+                      </label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://youtube.com/c/yourstore"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Globe size={14} /> Website
+                      </label>
+                      <input 
+                        type="text" 
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://yourstore.com"
+                      />
+                    </div>
+                  </div>
+                </section>
               </div>
-            </div>
-            <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-auto">
-              Your VIP members contribute nearly half of total revenue this month.
-            </p>
-            <button className="mt-8 flex items-center gap-2 text-[10px] font-black text-[#4F46E5] uppercase tracking-widest hover:gap-4 transition-all">
-              Analyze Segments
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

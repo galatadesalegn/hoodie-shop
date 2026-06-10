@@ -40,6 +40,8 @@ const AdminProducts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [stockFilter, setStockFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editHoodie, setEditHoodie] = useState<Hoodie | null>(null);
   const [form, setForm] = useState<any>(EMPTY_FORM);
@@ -54,12 +56,14 @@ const AdminProducts: React.FC = () => {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '15' });
       if (search) params.set('search', search);
+      if (categoryFilter) params.set('category', categoryFilter);
+      if (stockFilter) params.set('stockLevel', stockFilter);
       const { data } = await api.get(`/hoodies/admin/all?${params}`);
       setHoodies(data.data.hoodies);
       setTotal(data.data.total);
     } catch {}
     setLoading(false);
-  }, [page, search]);
+  }, [page, search, categoryFilter, stockFilter]);
 
   useEffect(() => { fetchHoodies(); }, [fetchHoodies]);
 
@@ -99,8 +103,12 @@ const AdminProducts: React.FC = () => {
     try {
       await api.delete(`/hoodies/${id}`);
       setDeleteId(null);
+      setSuccess('Product deleted successfully!');
+      setTimeout(() => setSuccess(''), 3000);
       fetchHoodies();
-    } catch {}
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete product.');
+    }
   };
 
   const updateSize = (size: string, stock: number) => {
@@ -196,21 +204,33 @@ const AdminProducts: React.FC = () => {
         {/* Filters Bar */}
         <div className="px-8 py-6 border-b border-noir/5 dark:border-white/5 flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="relative min-w-[180px]">
-              <select className="w-full appearance-none bg-[#F3F4F6] dark:bg-white/5 border-none rounded-2xl py-3 pl-6 pr-12 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none">
-                <option>All Categories</option>
-                <option>Oversized</option>
-                <option>Streetwear</option>
+            <div className="relative min-w-[200px] group">
+              <select 
+                value={categoryFilter}
+                onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+                className="w-full appearance-none bg-[#F3F4F6] dark:bg-white/5 border-2 border-transparent hover:border-indigo-500/20 rounded-full py-3.5 pl-8 pr-12 text-[10px] font-black uppercase tracking-[0.1em] focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none cursor-pointer"
+              >
+                <option value="">All Categories</option>
+                <option value="oversized">Oversized</option>
+                <option value="streetwear">Streetwear</option>
+                <option value="graphic">Graphic</option>
+                <option value="zip-up">Zip-up</option>
+                <option value="winter">Winter</option>
               </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-noir/30 dark:text-white/30" size={14} />
+              <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 text-noir/30 dark:text-white/30 group-hover:text-indigo-500 transition-colors" size={14} />
             </div>
-            <div className="relative min-w-[180px]">
-              <select className="w-full appearance-none bg-[#F3F4F6] dark:bg-white/5 border-none rounded-2xl py-3 pl-6 pr-12 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-[#4F46E5]/20 transition-all outline-none">
-                <option>Stock Level</option>
-                <option>Low Stock</option>
-                <option>Out of Stock</option>
+            <div className="relative min-w-[200px] group">
+              <select 
+                value={stockFilter}
+                onChange={(e) => { setStockFilter(e.target.value); setPage(1); }}
+                className="w-full appearance-none bg-[#F3F4F6] dark:bg-white/5 border-2 border-transparent hover:border-indigo-500/20 rounded-full py-3.5 pl-8 pr-12 text-[10px] font-black uppercase tracking-[0.1em] focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none cursor-pointer"
+              >
+                <option value="">Stock Level</option>
+                <option value="in-stock">In Stock</option>
+                <option value="low-stock">Low Stock</option>
+                <option value="out-of-stock">Out of Stock</option>
               </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-noir/30 dark:text-white/30" size={14} />
+              <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 rotate-90 text-noir/30 dark:text-white/30 group-hover:text-indigo-500 transition-colors" size={14} />
             </div>
           </div>
           <div className="text-[10px] font-black text-noir/30 dark:text-white/30 uppercase tracking-widest">
@@ -374,50 +394,36 @@ const AdminProducts: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer Insight Cards */}
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-white/5 p-10 rounded-[40px] border border-noir/5 dark:border-white/5 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-10 opacity-10 group-hover:opacity-20 transition-opacity">
-            <TrendingUp size={120} className="text-[#4F46E5]" />
-          </div>
-          <div className="relative z-10">
-            <h2 className="text-xl font-black text-noir dark:text-white tracking-tight uppercase mb-4">Inventory Insight</h2>
-            <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight mb-8 max-w-md">
-              Your streetwear category is seeing a 15% increase in velocity. Consider replenishing 'Premium Hoodies' before weekend peak sales.
-            </p>
-            <button className="flex items-center gap-2 text-[10px] font-black text-[#4F46E5] uppercase tracking-widest hover:gap-4 transition-all">
-              View Analytics Report
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-[#4F46E5] p-10 rounded-[40px] shadow-xl shadow-indigo-500/20 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 to-transparent" />
-          <div className="relative z-10">
-            <h2 className="text-xl font-black text-white tracking-tight uppercase mb-4">Bulk Product Update</h2>
-            <p className="text-sm text-white/60 font-medium tracking-tight mb-8 max-w-md">
-              New CSV import tools are live. You can now update prices and stock levels for up to 5,000 items in a single upload.
-            </p>
-            <button className="bg-white text-[#4F46E5] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg">
-              Try Bulk Import
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Delete Confirm */}
       <AnimatePresence>
         {deleteId && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }} className="bg-background border border-border p-8 max-w-sm w-full">
-              <h3 className="font-display text-2xl tracking-widest mb-3">DELETE PRODUCT</h3>
-              <p className="text-muted-foreground text-sm mb-6">This action cannot be undone. The product and all its images will be permanently deleted.</p>
-              <div className="flex gap-3">
-                <button onClick={() => handleDelete(deleteId)} className="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-heading tracking-widest uppercase text-sm py-3 transition-colors">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 bg-noir/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              exit={{ scale: 0.9, opacity: 0 }} 
+              className="bg-[#1A1A1A] border border-white/20 p-10 max-w-lg w-full shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)]"
+            >
+              <h3 className="text-3xl font-black text-white tracking-widest uppercase mb-6">DELETE PRODUCT</h3>
+              <p className="text-white/60 text-sm font-medium tracking-tight mb-10 leading-relaxed">
+                This action cannot be undone. The product and all its images will be permanently deleted from the archive.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => handleDelete(deleteId)} 
+                  className="bg-white/10 hover:bg-white/20 text-white font-black tracking-[0.2em] uppercase text-[10px] py-5 transition-all"
+                >
                   Delete
                 </button>
-                <button onClick={() => setDeleteId(null)} className="flex-1 border border-border font-heading tracking-widest uppercase text-sm py-3 hover:bg-accent transition-colors">
+                <button 
+                  onClick={() => setDeleteId(null)} 
+                  className="border border-white/20 text-white font-black tracking-[0.2em] uppercase text-[10px] py-5 hover:bg-white hover:text-noir transition-all"
+                >
                   Cancel
                 </button>
               </div>

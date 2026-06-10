@@ -5,7 +5,8 @@ import {
   Search, HelpCircle, Upload, 
   CheckCircle, AlertCircle, Trash2, Power,
   Globe, Mail, DollarSign, Clock, MapPin,
-  Database, Zap, Beaker, ChevronRight
+  Database, Zap, Beaker, ChevronRight,
+  Instagram, Twitter, Facebook, Youtube
 } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,9 +14,6 @@ import { useAuth } from '../../contexts/AuthContext';
 const TABS = [
   { id: 'general', label: 'General', icon: <Settings size={18} /> },
   { id: 'profile', label: 'Profile', icon: <User size={18} /> },
-  { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
-  { id: 'security', label: 'Security', icon: <Shield size={18} /> },
-  { id: 'billing', label: 'Billing', icon: <CreditCard size={18} /> },
 ];
 
 const AdminSettings: React.FC = () => {
@@ -45,17 +43,39 @@ const AdminSettings: React.FC = () => {
   });
 
   // Profile Form State (Existing)
-  const [profileForm, setProfileForm] = useState({ 
-    name: user?.name || ''
+  const [profileForm, setProfileForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
   });
-  const [passForm, setPassForm] = useState({ 
-    currentPassword: '', 
-    newPassword: '', 
-    confirmPassword: '' 
+  const [passForm, setPassForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
   });
   
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Social Media State
+  const [socialForm, setSocialForm] = useState({
+    instagram: 'https://instagram.com/enterprise',
+    twitter: 'https://twitter.com/enterprise',
+    facebook: 'https://facebook.com/enterprise',
+    youtube: 'https://youtube.com/c/enterprise',
+    website: 'https://enterprise.com'
+  });
+
+  const saveSocial = async () => {
+    setSaving(true);
+    try {
+      // API call would go here
+      setMsg({ type: 'success', text: 'Social media settings updated.' });
+      setTimeout(() => setMsg(null), 3000);
+    } catch (err: any) {
+      setMsg({ type: 'error', text: 'Failed to update social media settings.' });
+    }
+    setSaving(false);
+  };
 
   const saveGeneral = async () => {
     setSaving(true);
@@ -115,16 +135,16 @@ const AdminSettings: React.FC = () => {
   };
 
   const Toggle = ({ enabled, onChange, label, description, icon, statusLabel }: any) => (
-    <div className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl p-6 flex items-start justify-between">
-      <div className="flex gap-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${enabled ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400'}`}>
+    <div className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-[32px] p-8 flex items-start justify-between shadow-sm">
+      <div className="flex gap-6">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${enabled ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-400'}`}>
           {icon}
         </div>
         <div>
-          <h4 className="text-sm font-bold text-noir dark:text-white">{label}</h4>
-          <p className="text-xs text-noir/40 dark:text-white/40 mt-1 max-w-[200px]">{description}</p>
-          <div className="mt-4 flex items-center gap-2">
-            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${enabled ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
+          <h4 className="text-base font-black text-noir dark:text-white uppercase tracking-tight">{label}</h4>
+          <p className="text-sm text-noir/40 dark:text-white/40 mt-1 max-w-[240px] font-medium tracking-tight">{description}</p>
+          <div className="mt-6 flex items-center gap-2">
+            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg ${enabled ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>
               {statusLabel || (enabled ? 'ACTIVE' : 'DISABLED')}
             </span>
           </div>
@@ -132,9 +152,9 @@ const AdminSettings: React.FC = () => {
       </div>
       <button 
         onClick={() => onChange(!enabled)}
-        className={`w-12 h-6 rounded-full transition-colors relative ${enabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-white/10'}`}
+        className={`w-14 h-7 rounded-full transition-colors relative ${enabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-white/10'}`}
       >
-        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+        <div className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${enabled ? 'translate-x-7' : 'translate-x-0'} shadow-sm`} />
       </button>
     </div>
   );
@@ -145,17 +165,6 @@ const AdminSettings: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3 px-2">
           <h1 className="text-xl font-black text-noir dark:text-white uppercase tracking-tight">Settings</h1>
-          <div className="h-6 w-px bg-noir/10 dark:bg-white/10 hidden md:block" />
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-noir/20 dark:text-white/20" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search settings..." 
-              className="pl-10 pr-4 py-2 bg-transparent text-sm focus:outline-none w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
         </div>
         <div className="flex items-center gap-2">
           <button className="p-2 text-noir/40 dark:text-white/40 hover:text-noir dark:hover:text-white transition-colors">
@@ -205,161 +214,77 @@ const AdminSettings: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-8"
               >
-                {/* General Configuration */}
-                <section className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-3xl p-8 shadow-sm">
-                  <div className="flex flex-col gap-1 mb-8">
-                    <h2 className="text-lg font-black text-noir dark:text-white uppercase tracking-tight">General Configuration</h2>
-                    <p className="text-sm text-noir/40 dark:text-white/40">Update your store's basic information and localization preferences.</p>
+                {/* Social Media Form */}
+                <section className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-[40px] p-10 shadow-sm">
+                  <div className="flex flex-col gap-1 mb-10">
+                    <h2 className="text-xl font-black text-noir dark:text-white uppercase tracking-tight">Social Media</h2>
+                    <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight">Manage your store's social media links and online presence.</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Store Name</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Instagram size={14} /> Instagram
+                      </label>
                       <input 
                         type="text" 
-                        value={generalForm.storeName}
-                        onChange={(e) => setGeneralForm({...generalForm, storeName: e.target.value})}
-                        className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                        value={socialForm.instagram}
+                        onChange={(e) => setSocialForm({...socialForm, instagram: e.target.value})}
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://instagram.com/yourstore"
                       />
                     </div>
+
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Store Email</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Twitter size={14} /> Twitter (X)
+                      </label>
                       <input 
-                        type="email" 
-                        value={generalForm.storeEmail}
-                        onChange={(e) => setGeneralForm({...generalForm, storeEmail: e.target.value})}
-                        className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                        type="text" 
+                        value={socialForm.twitter}
+                        onChange={(e) => setSocialForm({...socialForm, twitter: e.target.value})}
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://twitter.com/yourstore"
                       />
                     </div>
+
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Currency</label>
-                      <select 
-                        value={generalForm.currency}
-                        onChange={(e) => setGeneralForm({...generalForm, currency: e.target.value})}
-                        className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors appearance-none"
-                      >
-                        <option>USD - United States Dollar</option>
-                        <option>EUR - Euro</option>
-                        <option>GBP - British Pound</option>
-                      </select>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Facebook size={14} /> Facebook
+                      </label>
+                      <input 
+                        type="text" 
+                        value={socialForm.facebook}
+                        onChange={(e) => setSocialForm({...socialForm, facebook: e.target.value})}
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://facebook.com/yourstore"
+                      />
                     </div>
+
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Timezone</label>
-                      <select 
-                        value={generalForm.timezone}
-                        onChange={(e) => setGeneralForm({...generalForm, timezone: e.target.value})}
-                        className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors appearance-none"
-                      >
-                        <option>(GMT-05:00) Eastern Time</option>
-                        <option>(GMT+00:00) London</option>
-                        <option>(GMT+01:00) Paris</option>
-                      </select>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Youtube size={14} /> YouTube
+                      </label>
+                      <input 
+                        type="text" 
+                        value={socialForm.youtube}
+                        onChange={(e) => setSocialForm({...socialForm, youtube: e.target.value})}
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://youtube.com/c/yourstore"
+                      />
                     </div>
-                  </div>
-                </section>
 
-                {/* Store Profile */}
-                <section className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-3xl p-8 shadow-sm">
-                  <div className="flex flex-col gap-1 mb-8">
-                    <h2 className="text-lg font-black text-noir dark:text-white uppercase tracking-tight">Store Profile</h2>
-                    <p className="text-sm text-noir/40 dark:text-white/40">Manage your public brand identity and physical location.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-10">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Store Logo</label>
-                      <div className="aspect-square bg-noir/5 dark:bg-white/5 border-2 border-dashed border-noir/10 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-noir/10 dark:hover:bg-white/10 transition-colors group">
-                        <Upload size={24} className="text-noir/20 dark:text-white/20 group-hover:text-indigo-600 transition-colors" />
-                        <span className="text-[10px] font-bold text-noir/40 dark:text-white/40 text-center px-4">Click to upload (PNG, JPG)</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Business Address</label>
-                        <input 
-                          type="text" 
-                          placeholder="Street Address"
-                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                        />
-                      </div>
-                      <div className="grid grid-cols-3 gap-4">
-                        <input 
-                          type="text" 
-                          placeholder="City"
-                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="State/Province"
-                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Postal Code"
-                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Features Toggles */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Toggle 
-                    enabled={toggles.backups}
-                    onChange={(v: boolean) => setToggles({...toggles, backups: v})}
-                    label="Automated Backups"
-                    description="Daily system snapshots of your inventory and logs."
-                    icon={<Database size={20} />}
-                  />
-                  <Toggle 
-                    enabled={toggles.apiAccess}
-                    onChange={(v: boolean) => setToggles({...toggles, apiAccess: v})}
-                    label="API Access"
-                    description="Allow third-party integrations to access your data."
-                    icon={<Zap size={20} />}
-                  />
-                  <Toggle 
-                    enabled={toggles.betaFeatures}
-                    onChange={(v: boolean) => setToggles({...toggles, betaFeatures: v})}
-                    label="Beta Features"
-                    description="Opt-in to test new dashboard widgets before release."
-                    icon={<Beaker size={20} />}
-                    statusLabel={toggles.betaFeatures ? 'ON' : 'OFF'}
-                  />
-                </div>
-
-                {/* Danger Zone */}
-                <section className="bg-red-50/50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-3xl p-8 shadow-sm">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center text-red-600">
-                      <AlertCircle size={20} />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-black text-red-600 uppercase tracking-tight leading-none">Danger Zone</h2>
-                      <p className="text-xs text-red-600/60 mt-1">These actions are permanent and cannot be undone.</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-white dark:bg-white/5 border border-red-100 dark:border-red-500/20 rounded-2xl">
-                      <div>
-                        <h4 className="text-sm font-bold text-noir dark:text-white">Deactivate Store</h4>
-                        <p className="text-xs text-noir/40 dark:text-white/40">Temporarily disable your storefront and admin access.</p>
-                      </div>
-                      <button className="px-4 py-2 border border-red-200 text-red-600 rounded-xl text-xs font-bold hover:bg-red-50 transition-colors">
-                        Deactivate
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-white dark:bg-white/5 border border-red-100 dark:border-red-500/20 rounded-2xl">
-                      <div>
-                        <h4 className="text-sm font-bold text-noir dark:text-white">Delete Account</h4>
-                        <p className="text-xs text-noir/40 dark:text-white/40">Permanently remove all data, products, and customer history.</p>
-                      </div>
-                      <button className="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
-                        Delete Permanently
-                      </button>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1 flex items-center gap-2">
+                        <Globe size={14} /> Website
+                      </label>
+                      <input 
+                        type="text" 
+                        value={socialForm.website}
+                        onChange={(e) => setSocialForm({...socialForm, website: e.target.value})}
+                        className="w-full bg-[#F8F9FA] dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                        placeholder="https://yourstore.com"
+                      />
                     </div>
                   </div>
                 </section>
@@ -398,15 +323,27 @@ const AdminSettings: React.FC = () => {
                   </div>
 
                   <form onSubmit={saveProfile} className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Full Name</label>
-                      <input
-                        type="text"
-                        value={profileForm.name}
-                        onChange={(e) => setProfileForm({ name: e.target.value })}
-                        className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                        placeholder="Enter your full name"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Full Name</label>
+                        <input
+                          type="text"
+                          value={profileForm.name}
+                          onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Email Address</label>
+                        <input
+                          type="email"
+                          value={profileForm.email}
+                          onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="Enter your email address"
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center gap-2">
@@ -416,29 +353,49 @@ const AdminSettings: React.FC = () => {
                     </div>
                   </form>
                 </section>
-              </motion.div>
-            )}
 
-            {['notifications', 'security', 'billing'].includes(activeTab) && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-3xl p-20 flex flex-col items-center justify-center text-center shadow-sm"
-              >
-                <div className="w-20 h-20 rounded-3xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6">
-                  {TABS.find(t => t.id === activeTab)?.icon}
-                </div>
-                <h2 className="text-2xl font-black text-noir dark:text-white uppercase tracking-tight">{activeTab} Settings</h2>
-                <p className="text-noir/40 dark:text-white/40 mt-2 max-w-sm">
-                  This section is currently under development. Check back soon for more enterprise management features.
-                </p>
-                <button 
-                  onClick={() => setActiveTab('general')}
-                  className="mt-8 flex items-center gap-2 text-indigo-600 font-bold text-sm hover:gap-3 transition-all"
-                >
-                  Back to General <ChevronRight size={16} />
-                </button>
+                {/* Password Security */}
+                <section className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-3xl p-8 shadow-sm">
+                  <div className="flex flex-col gap-1 mb-8">
+                    <h2 className="text-lg font-black text-noir dark:text-white uppercase tracking-tight">Password Security</h2>
+                    <p className="text-sm text-noir/40 dark:text-white/40">Update your account password to stay secure.</p>
+                  </div>
+
+                  <form onSubmit={savePassword} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Current Password</label>
+                        <input
+                          type="password"
+                          value={passForm.currentPassword}
+                          onChange={(e) => setPassForm({ ...passForm, currentPassword: e.target.value })}
+                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">New Password</label>
+                        <input
+                          type="password"
+                          value={passForm.newPassword}
+                          onChange={(e) => setPassForm({ ...passForm, newPassword: e.target.value })}
+                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-noir/40 dark:text-white/40 ml-1">Confirm New Password</label>
+                        <input
+                          type="password"
+                          value={passForm.confirmPassword}
+                          onChange={(e) => setPassForm({ ...passForm, confirmPassword: e.target.value })}
+                          className="w-full bg-noir/5 dark:bg-white/5 border border-noir/5 dark:border-white/5 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+                  </form>
+                </section>
               </motion.div>
             )}
           </AnimatePresence>
@@ -466,23 +423,22 @@ const AdminSettings: React.FC = () => {
           </AnimatePresence>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-4 bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 p-6 rounded-3xl shadow-sm">
+          <div className="flex items-center justify-end gap-6 bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 p-6 rounded-[32px] shadow-sm">
             <button 
               onClick={() => window.location.reload()}
-              className="px-6 py-3 text-noir/40 dark:text-white/40 font-bold text-sm hover:text-noir dark:hover:text-white transition-colors"
+              className="px-6 py-3 text-noir/40 dark:text-white/40 font-black uppercase text-[10px] tracking-widest hover:text-noir dark:hover:text-white transition-colors"
             >
               Discard Changes
             </button>
             <button 
-              onClick={async (e) => {
-                if (activeTab === 'general') await saveGeneral();
+              onClick={async () => {
+                if (activeTab === 'general') await saveSocial();
                 if (activeTab === 'profile') {
-                  await saveProfile(e as any);
-                  if (passForm.newPassword) await savePassword(e as any);
+                  await saveProfile({ preventDefault: () => {} } as any);
                 }
               }}
-              disabled={saving || !['general', 'profile'].includes(activeTab)}
-              className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+              disabled={saving}
+              className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
