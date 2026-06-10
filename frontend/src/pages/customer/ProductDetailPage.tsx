@@ -11,11 +11,13 @@ import {
   ChevronRight 
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { Helmet } from 'react-helmet-async';
 import api from '../../services/api';
 import { Hoodie } from '../../types';
 import { FALLBACK_HOODIES } from '../../constants';
 import { useCartStore } from '../../contexts/CartStore';
 import { useAuth } from '../../contexts/AuthContext';
+import { sanitizeHTML } from '../../utils/sanitize';
 import Navbar from '../../components/customer/Navbar';
 import Footer from '../../components/customer/Footer';
 
@@ -106,6 +108,28 @@ const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-noir transition-colors duration-500">
+      <Helmet>
+        <title>{hoodie.name} | AXIS Archive Hoodies</title>
+        <meta name="description" content={`${hoodie.name} - ${hoodie.description}. Premium oversized hoodie from AXIS Archive. Luxury comfort meets timeless silhouette.`} />
+        <meta name="keywords" content={`${hoodie.name}, premium hoodie, oversized hoodie, ${hoodie.category}, AXIS hoodies, Ethiopian fashion`} />
+        <link rel="canonical" href={window.location.href} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={hoodie.name} />
+        <meta property="og:description" content={`${hoodie.description}. Premium oversized hoodie from AXIS Archive.`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content={hoodie.images[0]?.url} />
+        <meta property="og:site_name" content="AXIS Archive" />
+        <meta property="product:price:amount" content={String(hoodie.discountPrice || hoodie.price)} />
+        <meta property="product:price:currency" content="ETB" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={hoodie.name} />
+        <meta name="twitter:description" content={`${hoodie.description}. Premium oversized hoodie from AXIS Archive.`} />
+        <meta name="twitter:image" content={hoodie.images[0]?.url} />
+      </Helmet>
       <Navbar />
       
       <main className="max-w-screen-xl mx-auto px-6 pt-32 pb-24">
@@ -159,7 +183,7 @@ const ProductDetailPage: React.FC = () => {
               <div 
                 className="text-sm text-noir/60 dark:text-white/60 leading-relaxed max-w-lg font-medium"
                 dangerouslySetInnerHTML={{ 
-                  __html: `* ${DOMPurify.sanitize(hoodie.description)} * Perfect for any occasion, combining comfort with a sleek modern design.` 
+                  __html: `* ${sanitizeHTML(hoodie.description)} * Perfect for any occasion, combining comfort with a sleek modern design.` 
                 }}
               />
               <div className="text-4xl font-black text-noir dark:text-white tracking-tight">

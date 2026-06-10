@@ -30,9 +30,8 @@ const AdminLoginPage: React.FC = () => {
         return;
       }
 
-      // If they are admin, proceed to store tokens and update state
-      localStorage.setItem('accessToken', data.data.accessToken);
-      // We manually trigger a refresh or let the context handle it, but navigate is safe here
+      // If they are admin, proceed to update state using AuthContext
+      // Tokens are stored in httpOnly cookies by the backend
       window.location.href = '/admin'; // Hard redirect to ensure clean admin state
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid administrator credentials.');

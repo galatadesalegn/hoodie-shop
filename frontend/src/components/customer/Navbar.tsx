@@ -5,6 +5,7 @@ import { ShoppingBag, User, Sun, Moon } from 'lucide-react';
 import { useCartStore } from '../../contexts/CartStore';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { sanitizeText } from '../../utils/sanitize';
 
 const NAV_LINKS = [
   { href: '/shop', label: 'Shop' },
@@ -83,7 +84,7 @@ const Navbar: React.FC = () => {
             <Link to={user ? '/account' : '/login'} className="text-noir/60 dark:text-white/60 hover:text-noir dark:hover:text-white transition-colors">
               {user ? (
                 <span className="w-8 h-8 flex items-center justify-center text-[12px] font-bold uppercase text-white dark:text-noir bg-noir dark:bg-white rounded-full shadow-sm">
-                  {user.name.charAt(0)}
+                  {sanitizeText(user.name).charAt(0)}
                 </span>
               ) : (
                 <User size={20} strokeWidth={1.5} />

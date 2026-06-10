@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed": "node src/utils/seeder.js"
+    "seed": "node src/utils/seeder.js",
+    "lint": "eslint src",
+    "test": "node --test smoke.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -34,6 +36,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "eslint": "^9.17.0",
     "nodemon": "^3.0.2"
   }
 }

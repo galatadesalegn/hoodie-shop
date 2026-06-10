@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import api from '../../services/api';
 import { Hoodie, HoodieCategory } from '../../types';
 import { FALLBACK_HOODIES } from '../../constants';
@@ -82,6 +83,26 @@ const ShopPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-studio dark:bg-noir transition-colors duration-500">
+      <Helmet>
+        <title>Shop {category ? CATEGORIES.find(c => c.value === category)?.label : 'All Hoodies'} | AXIS Archive</title>
+        <meta name="description" content={`Browse our collection of ${category ? CATEGORIES.find(c => c.value === category)?.label : 'premium'} hoodies. Luxury oversized hoodies for the modern archive.`} />
+        <meta name="keywords" content={`shop hoodies, ${category || 'premium'} hoodies, oversized hoodies, ${category || 'archive'} fashion, AXIS hoodies`} />
+        <link rel="canonical" href={window.location.href} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={`Shop ${category ? CATEGORIES.find(c => c.value === category)?.label : 'All Hoodies'} | AXIS Archive`} />
+        <meta property="og:description" content={`Browse our collection of ${category ? CATEGORIES.find(c => c.value === category)?.label : 'premium'} hoodies. Luxury oversized hoodies for the modern archive.`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content="https://res.cloudinary.com/image/upload/v1/hoodie-store/og-image.jpg" />
+        <meta property="og:site_name" content="AXIS Archive" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`Shop ${category ? CATEGORIES.find(c => c.value === category)?.label : 'All Hoodies'} | AXIS Archive`} />
+        <meta name="twitter:description" content={`Browse our collection of ${category ? CATEGORIES.find(c => c.value === category)?.label : 'premium'} hoodies. Luxury oversized hoodies for the modern archive.`} />
+        <meta name="twitter:image" content="https://res.cloudinary.com/image/upload/v1/hoodie-store/og-image.jpg" />
+      </Helmet>
       <Navbar />
 
       {/* Header */}

@@ -59,14 +59,24 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-noir transition-colors duration-500">
       <Helmet>
-        <title>AXIS | Premium Archive Hoodies</title>
-        <meta name="description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette." />
+        <title>AXIS | Premium Archive Hoodies - Luxury Streetwear</title>
+        <meta name="description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette. Shop the latest collection of oversized hoodies." />
+        <meta name="keywords" content="premium hoodies, luxury streetwear, oversized hoodies, archive fashion, AXIS hoodies, Ethiopian fashion" />
+        <link rel="canonical" href={window.location.href} />
+        
+        {/* Open Graph */}
         <meta property="og:title" content="AXIS | Premium Archive Hoodies" />
         <meta property="og:description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette." />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content="https://res.cloudinary.com/image/upload/v1/hoodie-store/og-image.jpg" />
+        <meta property="og:site_name" content="AXIS Archive" />
+        
+        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AXIS | Premium Archive Hoodies" />
         <meta name="twitter:description" content="Meticulously engineered premium hoodies for the modern archive. Luxury comfort meets timeless silhouette." />
+        <meta name="twitter:image" content="https://res.cloudinary.com/image/upload/v1/hoodie-store/og-image.jpg" />
       </Helmet>
       <Navbar />
 

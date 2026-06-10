@@ -14,6 +14,10 @@ import logger from './utils/logger.js';
 import { globalErrorHandler, notFound } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import csrf from 'csurf';
+import validateEnv from './utils/validateEnv.js';
+
+// Validate environment variables at startup
+validateEnv();
 
 import authRoutes from './routes/auth.js';
 import hoodieRoutes from './routes/hoodies.js';
@@ -38,6 +42,11 @@ app.use(helmet({
       connectSrc: ["'self'"],
       fontSrc: ["'self'", 'fonts.gstatic.com'],
       scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some recharts/framer-motion scenarios, but ideally remove
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: [],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -47,7 +56,10 @@ app.use(helmet({
     includeSubDomains: true,
     preload: true
   },
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  xContentTypeOptions: { nosniff: true },
+  xFrameOptions: { action: 'deny' },
+  xXssProtection: true,
 }));
 
 // CORS
