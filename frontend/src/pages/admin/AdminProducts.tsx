@@ -153,10 +153,6 @@ const AdminProducts: React.FC = () => {
           <p className="text-sm text-noir/40 dark:text-white/40 font-medium tracking-tight">Manage your inventory, pricing, and stock status across all categories.</p>
         </div>
         <div className="flex gap-4">
-          <button className="bg-white dark:bg-white/5 border border-noir/5 dark:border-white/5 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-noir hover:text-white dark:hover:bg-white dark:hover:text-noir transition-all shadow-sm">
-            <Download size={16} />
-            Export
-          </button>
           <button 
             onClick={openCreate} 
             className="bg-[#4F46E5] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20"

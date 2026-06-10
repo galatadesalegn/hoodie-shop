@@ -24,6 +24,7 @@ import {
 import api from '../../services/api';
 import type { DashboardStats, Order } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: '#F59E0B',
@@ -33,10 +34,21 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: '#EF4444',
 };
 
+const DUMMY_REVENUE_DATA = [
+  { _id: 'Jan', revenue: 45000, orders: 320 },
+  { _id: 'Feb', revenue: 52000, orders: 410 },
+  { _id: 'Mar', revenue: 48000, orders: 380 },
+  { _id: 'Apr', revenue: 61000, orders: 520 },
+  { _id: 'May', revenue: 55000, orders: 480 },
+  { _id: 'Jun', revenue: 67000, orders: 590 },
+  { _id: 'Jul', revenue: 72000, orders: 650 },
+];
+
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { isDark } = useTheme();
 
   useEffect(() => {
     api.get('/hoodies/admin/dashboard')
@@ -112,10 +124,6 @@ const AdminDashboard: React.FC = () => {
             <Calendar size={16} />
             Last 30 Days
           </button>
-          <button className="bg-[#4F46E5] text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20">
-            <Download size={16} />
-            Export Report
-          </button>
         </div>
       </div>
 
@@ -149,11 +157,15 @@ const AdminDashboard: React.FC = () => {
           </div>
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats?.revenueData || []}>
+              <AreaChart data={stats?.revenueData?.length ? stats.revenueData : DUMMY_REVENUE_DATA}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
                     <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#818CF8" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#818CF8" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#00000008" />
@@ -166,9 +178,20 @@ const AdminDashboard: React.FC = () => {
                 />
                 <YAxis hide />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: 'none', 
+                    boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+                    backgroundColor: isDark ? '#1F2937' : 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(8px)',
+                    color: isDark ? '#F9FAFB' : '#111827'
+                  }}
+                  itemStyle={{
+                    color: isDark ? '#F9FAFB' : '#111827'
+                  }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#4F46E5" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+                <Area type="monotone" dataKey="orders" stroke="#818CF8" strokeWidth={4} fillOpacity={1} fill="url(#colorOrders)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -181,7 +204,11 @@ const AdminDashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie 
-                  data={stats?.ordersByStatus || [{_id: 'Electronics', count: 45}, {_id: 'Fashion', count: 30}, {_id: 'Home', count: 25}]} 
+                  data={stats?.categoryStats?.length ? stats.categoryStats : [
+                    {_id: 'Streetwear', count: 45}, 
+                    {_id: 'Winter Wear', count: 30}, 
+                    {_id: 'Oversized', count: 25}
+                  ]} 
                   dataKey="count" 
                   innerRadius={70} 
                   outerRadius={90} 

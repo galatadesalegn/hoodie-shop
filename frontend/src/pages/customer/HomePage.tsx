@@ -230,7 +230,6 @@ const HomePage: React.FC = () => {
               transition={{ duration: 1 }}
               viewport={{ once: true }}
             >
-              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-noir/30 dark:text-white/30 mb-8">Our Story</p>
               <h2 className="text-[48px] md:text-[64px] font-light leading-[1.1] text-noir dark:text-white mb-10 uppercase tracking-tighter">
                 Built for <br />
                 <span className="font-black">More Than</span> <br />
@@ -238,117 +237,26 @@ const HomePage: React.FC = () => {
               </h2>
               
               <p className="text-noir/60 dark:text-white/60 text-lg mb-12 leading-relaxed max-w-lg">
-                AXIS was founded with a simple idea: create hoodies that blend <span className="font-bold text-noir dark:text-white">premium quality</span>, <span className="font-bold text-noir dark:text-white">modern design</span>, and everyday comfort. Each piece is crafted with attention to detail and a passion for timeless style.
+                AXIS was founded with a vision to redefine everyday essentials through premium craftsmanship, modern design, and lasting comfort. We believe great clothing should do more than look good—it should inspire confidence, express individuality, and fit seamlessly into your lifestyle. Every hoodie is carefully crafted using high-quality materials and attention to detail, creating timeless pieces designed to be worn, loved, and remembered for years to come.
               </p>
-
-              <div className="space-y-10 mb-12">
-                {[
-                  { icon: <Grid size={20} />, title: 'Premium Quality', desc: 'Carefully selected fabrics for long-lasting comfort.' },
-                  { icon: <Shirt size={20} />, title: 'Modern Design', desc: 'Streetwear-inspired looks, made for the now.' },
-                  { icon: <Heart size={20} />, title: 'Made for You', desc: 'Designed to fit your lifestyle and express your style.' }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex gap-6">
-                    <div className="w-14 h-14 rounded-full bg-studio dark:bg-white/5 flex items-center justify-center text-noir dark:text-white shrink-0 shadow-sm">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-[11px] font-black uppercase tracking-widest mb-2 text-noir dark:text-white">{item.title}</h4>
-                      <p className="text-sm text-noir/40 dark:text-white/40 leading-relaxed max-w-xs">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button 
-                onClick={() => navigate('/shop')}
-                className="bg-noir dark:bg-white text-white dark:text-noir px-10 py-5 text-[11px] font-bold tracking-[0.2em] uppercase flex items-center gap-3 hover:opacity-90 transition-all group"
-              >
-                Explore Collection
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
             </motion.div>
 
             {/* Right Visuals */}
-            <div className="relative">
-              <div className="grid grid-cols-12 gap-6 items-center">
-                {/* Main Large Image */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1 }}
-                  viewport={{ once: true }}
-                  className="col-span-8 relative z-10"
-                >
-                  <div className="aspect-[3/4] rounded-[40px] overflow-hidden shadow-2xl relative">
-                    <img 
-                      src="https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=1200" 
-                      alt="AXIS Hoodie" 
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/5" />
-                    
-                    {/* Floating Label */}
-                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-noir/80 backdrop-blur-xl p-6 rounded-3xl border border-white/10 w-[200px]">
-                      <div className="flex flex-col gap-3">
-                        {[
-                          { icon: <Zap size={12} />, text: 'Timeless Design' },
-                          { icon: <Check size={12} />, text: 'Premium Comfort' },
-                          { icon: <Check size={12} />, text: 'Everyday Wear' }
-                        ].map((t, i) => (
-                          <div key={i} className="flex items-center gap-3">
-                            <span className="text-white/40">{t.icon}</span>
-                            <span className="text-[10px] font-bold text-white uppercase tracking-widest">{t.text}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Smaller Side Images */}
-                <div className="col-span-4 flex flex-col gap-6">
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 1, delay: 0.2 }}
-                    viewport={{ once: true }}
-                    className="aspect-square rounded-3xl overflow-hidden shadow-xl"
-                  >
-                    <img src="https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400" alt="" className="w-full h-full object-cover" />
-                  </motion.div>
-                  
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 1, delay: 0.4 }}
-                    viewport={{ once: true }}
-                    className="bg-noir dark:bg-white/5 p-8 rounded-[40px] shadow-xl relative aspect-square flex flex-col justify-center"
-                  >
-                    <span className="text-accent-orange text-4xl font-serif mb-6 block">“</span>
-                    <p className="text-white dark:text-white/80 text-sm leading-relaxed mb-8 italic">
-                      We don't follow trends. We create pieces that last beyond seasons.
-                    </p>
-                    <div className="border-t border-white/10 pt-6">
-                      <p className="text-[10px] font-black text-white uppercase tracking-widest">Founder, AXIS</p>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-
-              {/* Decorative Circle Icon */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute -right-12 top-20 w-32 h-32 opacity-10 pointer-events-none"
+            <div className="relative flex justify-center lg:justify-end">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1 }}
+                viewport={{ once: true }}
+                className="w-full max-w-[500px] relative z-10"
               >
-                <svg className="w-full h-full text-noir dark:text-white" viewBox="0 0 100 100">
-                  <path id="circlePath" fill="none" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" />
-                  <text className="text-[10px] uppercase font-bold tracking-[0.2em] fill-current">
-                    <textPath href="#circlePath">Modern Essence • High Quality • Beyond Seasons •</textPath>
-                  </text>
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Globe size={24} className="opacity-20" />
+                <div className="aspect-[3/4] rounded-[40px] overflow-hidden shadow-2xl relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=1200" 
+                    alt="AXIS Hoodie" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/5" />
                 </div>
               </motion.div>
             </div>
