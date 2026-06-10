@@ -1,0 +1,105 @@
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
+import Hoodie from '../models/Hoodie.js';
+
+const connectDB = async () => {
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log('DB Connected');
+};
+
+const seedSuperAdmin = async () => {
+  const existing = await User.findOne({ role: 'superadmin' });
+  if (existing) {
+    console.log('Super admin already exists');
+    return;
+  }
+
+  await User.create({
+    name: process.env.SUPER_ADMIN_NAME || 'Super Admin',
+    username: process.env.SUPER_ADMIN_USERNAME || 'superadmin',
+    email: process.env.SUPER_ADMIN_EMAIL || 'superadmin@hoodvault.com',
+    password: process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin@123',
+    role: 'superadmin',
+    isEmailVerified: true,
+  });
+  console.log('✅ Super Admin created');
+};
+
+const seedSampleHoodies = async () => {
+  const count = await Hoodie.countDocuments();
+  if (count > 0) {
+    console.log('Hoodies already seeded');
+    return;
+  }
+
+  const admin = await User.findOne({ role: 'superadmin' });
+
+  const hoodies = [
+    {
+      name: 'Urban Shadow Oversized Hoodie',
+      brand: 'HoodVault',
+      description: 'Premium heavyweight cotton blend oversized hoodie. Perfect for the streets and beyond. Features kangaroo pocket, adjustable drawstring hood, and ribbed cuffs.',
+      price: 2500,
+      discountPrice: 1999,
+      category: 'oversized',
+      sizes: [{ size: 'S', stock: 10 }, { size: 'M', stock: 15 }, { size: 'L', stock: 12 }, { size: 'XL', stock: 8 }],
+      colors: [{ name: 'Midnight Black', hex: '#1a1a1a' }, { name: 'Arctic White', hex: '#f5f5f5' }],
+      images: [{ url: 'https://images.unsplash.com/photo-1554568218-0f1715e72254?w=800', publicId: 'sample1' }],
+      featured: true,
+      newArrival: true,
+      createdBy: admin._id,
+    },
+    {
+      name: 'Street Phantom Zip-Up',
+      brand: 'HoodVault',
+      description: 'Full-zip premium streetwear hoodie with contrast zipper. Crafted from 400 GSM French terry fabric for supreme comfort.',
+      price: 2800,
+      category: 'zip-up',
+      sizes: [{ size: 'M', stock: 10 }, { size: 'L', stock: 8 }, { size: 'XL', stock: 6 }],
+      colors: [{ name: 'Charcoal', hex: '#36454f' }, { name: 'Navy', hex: '#1f3a6e' }],
+      images: [{ url: 'https://images.unsplash.com/photo-1578768079052-aa76e52ff62e?w=800', publicId: 'sample2' }],
+      featured: true,
+      newArrival: false,
+      createdBy: admin._id,
+    },
+    {
+      name: 'Graphic Flame Hoodie',
+      brand: 'HoodVault',
+      description: 'Bold graphic print hoodie with our signature flame design. Screen-printed with premium inks that last through hundreds of washes.',
+      price: 2200,
+      category: 'graphic',
+      sizes: [{ size: 'S', stock: 5 }, { size: 'M', stock: 12 }, { size: 'L', stock: 10 }],
+      colors: [{ name: 'Black', hex: '#000000' }],
+      images: [{ url: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800', publicId: 'sample3' }],
+      featured: false,
+      newArrival: true,
+      createdBy: admin._id,
+    },
+  ];
+
+  // Using for...of loop to ensure .save() is called for each document to trigger pre-save middleware (slug generation)
+  for (const hoodieData of hoodies) {
+    const hoodie = new Hoodie(hoodieData);
+    await hoodie.save();
+  }
+  console.log('✅ Sample hoodies seeded');
+};
+
+const run = async () => {
+  await connectDB();
+  
+  // Cleanup partially seeded data to avoid duplicate key errors
+  await Hoodie.deleteMany({});
+  console.log('🗑️ Cleaned up existing hoodies');
+
+  await seedSuperAdmin();
+  await seedSampleHoodies();
+  console.log('Seeding complete!');
+  process.exit(0);
+};
+
+run().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
