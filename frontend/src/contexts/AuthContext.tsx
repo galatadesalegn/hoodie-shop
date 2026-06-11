@@ -19,6 +19,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
+    if (!localStorage.getItem('accessToken') && !localStorage.getItem('refreshToken')) {
+      setUser(null);
+      return;
+    }
+
     try {
       const { data } = await api.get('/auth/me');
       setUser(data.data.user);
