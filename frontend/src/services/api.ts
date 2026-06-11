@@ -25,8 +25,11 @@ const fetchCsrfToken = async () => {
 
 fetchCsrfToken();
 
-// Request interceptor - attach access token (REMOVED - Using Cookies)
 api.interceptors.request.use((config) => {
+  const accessToken = localStorage.getItem('accessToken');
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
   return config;
 });
 
@@ -66,7 +69,9 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+          if (token) {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
           return api(originalRequest);
         });
       }
@@ -79,17 +84,23 @@ api.interceptors.response.use(
           refreshToken: storedRefreshToken
         });
         
+        const newAccessToken = response.data.data.accessToken;
         const newRefreshToken = response.data.data.refreshToken;
+        
+        if (newAccessToken) {
+          localStorage.setItem('accessToken', newAccessToken);
+        }
         
         // Store new refresh token
         if (newRefreshToken) {
           localStorage.setItem('refreshToken', newRefreshToken);
         }
         
-        processQueue(null, null);
+        processQueue(null, newAccessToken);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(refreshError);

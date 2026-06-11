@@ -33,6 +33,11 @@ const ensureCsrfToken = async () => {
 };
 
 api.interceptors.request.use(async (config) => {
+  const accessToken = localStorage.getItem('accessToken');
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   const method = config.method?.toLowerCase();
   if (method && ['post', 'put', 'patch', 'delete'].includes(method)) {
     try {
@@ -102,10 +107,16 @@ api.interceptors.response.use(
           localStorage.setItem('refreshToken', newRefreshToken);
         }
         
-        processQueue(null, null);
+        const newAccessToken = response.data.data.accessToken;
+        if (newAccessToken) {
+          localStorage.setItem('accessToken', newAccessToken);
+        }
+
+        processQueue(null, newAccessToken);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(refreshError);
