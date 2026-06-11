@@ -130,10 +130,25 @@ const AdminSettings: React.FC = () => {
     e.preventDefault();
     setSaving(true);
     setMsg(null);
+    const emailChanged = profileForm.email !== user?.email;
     try {
-      await api.patch('/admin/profile', { name: profileForm.name, username: profileForm.username });
-      await refreshUser();
-      setMsg({ type: 'success', text: 'Profile updated successfully.' });
+      await api.patch('/admin/profile', {
+        name: profileForm.name,
+        username: profileForm.username,
+        ...(emailChanged ? { email: profileForm.email } : {}),
+      });
+
+      if (emailChanged) {
+        setEmailVerification({
+          pendingEmail: profileForm.email,
+          otp: '',
+          step: 'pending',
+        });
+        setMsg({ type: 'success', text: 'Verification code sent to your new email.' });
+      } else {
+        await refreshUser();
+        setMsg({ type: 'success', text: 'Profile updated successfully.' });
+      }
     } catch (err: any) {
       setMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update profile.' });
     }

@@ -137,6 +137,7 @@ export const login = async (req, res, next) => {
       data: {
         user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, isEmailVerified: user.isEmailVerified },
         accessToken,
+        refreshToken,
       },
     });
   } catch (error) {
@@ -147,12 +148,23 @@ export const login = async (req, res, next) => {
 // Refresh Token
 export const refreshToken = async (req, res, next) => {
   try {
+    console.log('[REFRESH] Debug Info:', {
+      cookies: Object.keys(req.cookies || {}),
+      hasRefreshCookie: !!req.cookies?.refreshToken,
+      bodyKeys: Object.keys(req.body || {}),
+      hasRefreshBody: !!req.body?.refreshToken,
+      bodyRefreshToken: req.body?.refreshToken ? `${req.body.refreshToken.substring(0, 20)}...` : 'none',
+    });
+    
     const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!token) {
-      console.warn('[REFRESH] No token found in cookies or body');
+      console.warn('[REFRESH] ❌ No token found in cookies or body');
+      console.warn('[REFRESH] Cookies:', req.cookies);
+      console.warn('[REFRESH] Body:', req.body);
       return next(new AppError('No refresh token provided.', 401));
     }
 
+    console.log('[REFRESH] ✅ Token found');
     const decoded = verifyRefreshToken(token);
     const user = await User.findById(decoded.id).select('+refreshTokens +passwordChangedAt');
 
@@ -188,7 +200,7 @@ export const refreshToken = async (req, res, next) => {
 
     await logSecurityEvent({ event: 'token_refreshed', userId: user._id, ...getClientInfo(req) });
 
-    res.json({ success: true, data: { accessToken } });
+    res.json({ success: true, data: { accessToken, refreshToken: newRefreshToken } });
   } catch (error) {
     console.error('[REFRESH] Error:', error.message);
     clearTokenCookies(res);

@@ -7,6 +7,7 @@ export interface User {
   avatar: { url: string; publicId: string };
   isEmailVerified: boolean;
   lastLogin?: string;
+  totalSpent?: number;
   isActive: boolean;
   createdAt: string;
 }

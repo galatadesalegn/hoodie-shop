@@ -31,10 +31,12 @@ export const setTokenCookies = (res, accessToken, refreshToken) => {
     path: '/',
   });
 
+  // For refresh token - not httpOnly so it can be accessed by JS and stored in localStorage
+  // In dev, no sameSite restriction; in prod use 'none' with secure
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
+    httpOnly: false,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    sameSite: isProduction ? 'none' : false,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });

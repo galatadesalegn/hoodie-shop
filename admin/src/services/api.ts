@@ -58,8 +58,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Avoid retrying the refresh endpoint itself.
-    if (originalRequest.url?.includes('/auth/refresh')) {
+    // Auth endpoints are expected to return 401 for bad credentials or
+    // missing sessions; do not turn those into refresh attempts.
+    if (
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/refresh')
+    ) {
       return Promise.reject(error);
     }
 
@@ -79,11 +83,25 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post('/auth/refresh');
+        // Try to get refresh token from localStorage first, then from cookies
+        const storedRefreshToken = localStorage.getItem('refreshToken');
+        const response = await api.post('/auth/refresh', {
+          refreshToken: storedRefreshToken || undefined
+        });
+        
+        const newAccessToken = response.data.data.accessToken;
+        const newRefreshToken = response.data.data.refreshToken;
+        
+        // Store new refresh token
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
+        }
+        
         processQueue(null, null);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
+        localStorage.removeItem('refreshToken');
         window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(refreshError);
       } finally {

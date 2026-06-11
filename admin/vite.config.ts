@@ -16,7 +16,6 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
-        cookieDomainRewrite: 'localhost',
         configure: (proxy) => {
           proxy.on('proxyRes', (proxyRes) => {
             const setCookie = proxyRes.headers['set-cookie'];

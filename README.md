@@ -87,8 +87,10 @@ EMAILJS_TEMPLATE_OTP=template_xxxxxxx
 TELEGRAM_USERNAME=your_telegram_handle
 SUPER_ADMIN_NAME=Super Admin
 SUPER_ADMIN_USERNAME=superadmin
-SUPER_ADMIN_EMAIL=superadmin@hoodvault.com
-SUPER_ADMIN_PASSWORD=SuperAdmin@123
+# Only set these temporarily to create the first super admin.
+# After that, remove them and update email/password from Admin Settings.
+# SUPER_ADMIN_EMAIL=
+# SUPER_ADMIN_PASSWORD=
 ```
 
 ### 3. Frontend Environment
@@ -146,13 +148,9 @@ npm run dev:admin
 
 ---
 
-## 🔑 Default Admin Credentials
+## 🔑 Admin Credentials
 
-After seeding:
-- **Email:** superadmin@hoodvault.com
-- **Password:** SuperAdmin@123
-
-> ⚠️ Change these immediately after first login!
+Use one-time seed credentials only to create the first super admin. After the admin account exists, remove `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` from `.env` and manage email/password from the admin settings page.
 
 ---
 

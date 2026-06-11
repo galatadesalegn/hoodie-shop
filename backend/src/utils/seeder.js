@@ -11,7 +11,7 @@ const connectDB = async () => {
 const seedSuperAdmin = async () => {
   const existing = await User.findOne({ role: 'superadmin' });
   if (existing) {
-    console.log('Super admin already exists');
+    console.log('Super admin already exists. Seed credentials are ignored; manage email and password from Admin Settings.');
     return;
   }
 
@@ -21,7 +21,7 @@ const seedSuperAdmin = async () => {
   let password = process.env.SUPER_ADMIN_PASSWORD;
 
   if (!name || !username || !email) {
-    console.error('Missing SUPER_ADMIN_NAME, SUPER_ADMIN_USERNAME or SUPER_ADMIN_EMAIL in environment. Skipping super admin creation.');
+    console.error('Missing SUPER_ADMIN_NAME, SUPER_ADMIN_USERNAME or SUPER_ADMIN_EMAIL in environment. These are only required to create the first super admin.');
     return;
   }
 

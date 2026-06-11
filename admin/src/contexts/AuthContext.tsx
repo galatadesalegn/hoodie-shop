@@ -5,7 +5,7 @@ import type { User } from '../types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -40,6 +40,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/auth/login', { email, password });
     setUser(data.data.user);
+    // Store refresh token in localStorage as backup
+    if (data.data.refreshToken) {
+      localStorage.setItem('refreshToken', data.data.refreshToken);
+    }
     return data.data.user;
   };
 
@@ -48,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await api.post('/auth/logout');
     } catch {}
     setUser(null);
+    localStorage.removeItem('refreshToken');
   };
 
   return (
