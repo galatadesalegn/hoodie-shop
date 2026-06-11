@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://res-console.cloudinary.com/debw95rak/thumbnails/transform/v1/image/upload/Y19maWxsLGhfMjAwLHdfMjAw/v1/U2NyZWVuc2hvdF8yMDI2MDYxMV8xMjIyNDFfdWV4OHd1/template_primary" width="100" style="border-radius: 50%; border: 3px solid #6366f1;" alt="Profile" />
+<img src="https://res.cloudinary.com/debw95rak/image/upload/w_100,h_100,c_fill,r_max/Screenshot_20260611_122241_uex8wu" width="100" alt="Profile" />
 
 # HoodVault
 
@@ -12,8 +12,6 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=flat-square)](LICENSE)
-
-[**Live Demo**](#) · [**Admin Panel**](#) · [**API Docs**](#)
 
 </div>
 
