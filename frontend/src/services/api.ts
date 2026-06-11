@@ -24,6 +24,10 @@ const fetchCsrfToken = async () => {
   }
 };
 
+const clearCsrfToken = () => {
+  delete api.defaults.headers.common[CSRF_HEADER];
+};
+
 fetchCsrfToken();
 
 const ensureCsrfToken = async () => {
@@ -71,6 +75,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (error.response?.status === 403 && !originalRequest._csrfRetry) {
+      const message = String(error.response?.data?.message || '').toLowerCase();
+      if (message.includes('security token') || message.includes('csrf')) {
+        originalRequest._csrfRetry = true;
+        clearCsrfToken();
+        await ensureCsrfToken();
+        originalRequest.headers[CSRF_HEADER] = api.defaults.headers.common[CSRF_HEADER];
+        return api(originalRequest);
+      }
+    }
+
     // Auth endpoints are expected to return 401 for bad credentials or
     // missing sessions; do not turn those into refresh attempts.
     if (
@@ -83,6 +98,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       const storedRefreshToken = localStorage.getItem('refreshToken');
       if (!storedRefreshToken) {
+        window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(error);
       }
 

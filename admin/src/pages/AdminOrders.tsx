@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -27,6 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
 const STATUSES = ['pending', 'confirmed', 'processing', 'delivered', 'cancelled'];
 
 const AdminOrders: React.FC = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -38,9 +40,11 @@ const AdminOrders: React.FC = () => {
   const [statusNote, setStatusNote] = useState('');
   const [updating, setUpdating] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
+    setErrorMsg('');
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (statusFilter) params.set('status', statusFilter);
@@ -48,22 +52,35 @@ const AdminOrders: React.FC = () => {
       const { data } = await api.get(`/orders?${params}`);
       setOrders(data.data.orders);
       setTotal(data.data.total);
-    } catch {}
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Could not load orders.';
+      setErrorMsg(message);
+      if (err.response?.status === 401) {
+        navigate('/login', { replace: true });
+      }
+    }
     setLoading(false);
-  }, [page, statusFilter, search]);
+  }, [page, statusFilter, search, navigate]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const handleStatusUpdate = async () => {
     if (!selected || !newStatus) return;
     setUpdating(true);
+    setErrorMsg('');
     try {
       await api.patch(`/orders/${selected._id}/status`, { status: newStatus, note: statusNote });
       await fetchOrders();
       setSuccessMsg(`Order #${selected.orderNumber} updated to ${newStatus}`);
       setTimeout(() => setSuccessMsg(''), 3000);
       setSelected(null);
-    } catch (err) {}
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Could not update order status.';
+      setErrorMsg(message);
+      if (err.response?.status === 401) {
+        navigate('/login', { replace: true });
+      }
+    }
     setUpdating(false);
   };
 
@@ -82,6 +99,19 @@ const AdminOrders: React.FC = () => {
           >
             <CheckCircle2 size={18} />
             {successMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            className="fixed top-10 left-1/2 z-[150] bg-red-500 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-black uppercase text-[10px] tracking-widest max-w-[90vw]"
+          >
+            {errorMsg}
           </motion.div>
         )}
       </AnimatePresence>
