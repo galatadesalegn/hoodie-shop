@@ -57,6 +57,11 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+      if (!storedRefreshToken) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -70,10 +75,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Try to get refresh token from localStorage first, then from cookies
-        const storedRefreshToken = localStorage.getItem('refreshToken');
         const response = await api.post('/auth/refresh', {
-          refreshToken: storedRefreshToken || undefined
+          refreshToken: storedRefreshToken
         });
         
         const newRefreshToken = response.data.data.refreshToken;

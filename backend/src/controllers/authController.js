@@ -148,23 +148,11 @@ export const login = async (req, res, next) => {
 // Refresh Token
 export const refreshToken = async (req, res, next) => {
   try {
-    console.log('[REFRESH] Debug Info:', {
-      cookies: Object.keys(req.cookies || {}),
-      hasRefreshCookie: !!req.cookies?.refreshToken,
-      bodyKeys: Object.keys(req.body || {}),
-      hasRefreshBody: !!req.body?.refreshToken,
-      bodyRefreshToken: req.body?.refreshToken ? `${req.body.refreshToken.substring(0, 20)}...` : 'none',
-    });
-    
     const token = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!token) {
-      console.warn('[REFRESH] ❌ No token found in cookies or body');
-      console.warn('[REFRESH] Cookies:', req.cookies);
-      console.warn('[REFRESH] Body:', req.body);
       return next(new AppError('No refresh token provided.', 401));
     }
 
-    console.log('[REFRESH] ✅ Token found');
     const decoded = verifyRefreshToken(token);
     const user = await User.findById(decoded.id).select('+refreshTokens +passwordChangedAt');
 
