@@ -104,6 +104,14 @@ const csrfProtection = csrf({
 });
 
 // Health check
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Hoodie Shop API is running',
+    health: '/health',
+  });
+});
+
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
 // CSRF Token endpoint
