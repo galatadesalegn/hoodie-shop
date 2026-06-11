@@ -5,8 +5,6 @@ import {
   Pencil, 
   Trash2, 
   Search, 
-  ToggleLeft, 
-  ToggleRight, 
   X, 
   Download, 
   AlertTriangle, 
@@ -740,34 +738,6 @@ const AdminProducts: React.FC = () => {
                         </button>
                       );
                     })}
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3.5">
-                    {[
-                      { key: 'newArrival', label: 'New Arrival' },
-                      { key: 'isActive', label: 'Published' },
-                    ].map(({ key, label }) => (
-                      <button 
-                        key={key}
-                        type="button" 
-                        onClick={() => setForm((f: any) => ({ ...f, [key]: !f[key] }))}
-                        className={`flex flex-col items-center gap-2 px-5 py-3 rounded-xl border transition-all ${
-                          form[key] 
-                            ? 'bg-[#4F46E5] border-[#4F46E5] text-white shadow-lg shadow-indigo-500/20' 
-                            : 'bg-white dark:bg-white/5 border-noir/10 dark:border-white/10 text-noir/40 dark:text-white/40'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          {form[key] ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
-                          <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
-                        </div>
-                        {key === 'isActive' && (
-                          <span className={`text-[7px] font-bold uppercase tracking-widest opacity-60`}>
-                            {form[key] ? 'Visible to Customers' : 'Hidden from Shop'}
-                          </span>
-                        )}
-                      </button>
-                    ))}
                   </div>
                 </div>
                 
