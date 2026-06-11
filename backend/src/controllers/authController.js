@@ -22,7 +22,7 @@ export const register = async (req, res, next) => {
     // Delete any existing pending registration for this email
     await PendingRegistration.deleteMany({ email });
 
-    const pendingUser = await PendingRegistration.create({ name, username, email, password });
+    const pendingUser = new PendingRegistration({ name, username, email, password });
     const otp = pendingUser.generateOtp();
     await pendingUser.save();
 
