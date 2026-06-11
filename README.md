@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://res.cloudinary.com/debw95rak/image/upload/w_100,h_100,c_fill,r_max/Screenshot_20260611_122241_uex8wu" width="100" alt="Profile" />
+<img src="https://res.cloudinary.com/debw95rak/image/upload/Screenshot_20260611_122241_uex8wu" width="100%" alt="Profile" />
 
 # HoodVault
 
