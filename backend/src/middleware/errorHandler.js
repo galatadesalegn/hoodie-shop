@@ -10,6 +10,7 @@ const handleValidationError = (err) => {
   const errors = Object.values(err.errors).map((e) => e.message);
   return new AppError(`Validation failed: ${errors.join('. ')}`, 400);
 };
+const handleCSRFError = () => new AppError('Security token expired. Please refresh the page and try again.', 403);
 const handleJWTError = () => new AppError('Invalid token. Please log in again.', 401);
 const handleJWTExpiredError = () => new AppError('Token expired. Please log in again.', 401);
 
@@ -37,7 +38,7 @@ export const notFound = (req, res, next) => {
 };
 
 export const globalErrorHandler = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
+  err.statusCode = err.statusCode || err.status || 500;
   err.status = err.statusCode >= 400 && err.statusCode < 500 ? 'fail' : 'error';
 
   // Log full error in development for debugging
@@ -53,6 +54,7 @@ export const globalErrorHandler = (err, req, res, next) => {
   if (err.name === 'CastError') error = handleCastError(err);
   if (err.code === 11000) error = handleDuplicateError(err);
   if (err.name === 'ValidationError') error = handleValidationError(err);
+  if (err.code === 'EBADCSRFTOKEN') error = handleCSRFError();
   if (err.name === 'JsonWebTokenError') error = handleJWTError();
   if (err.name === 'TokenExpiredError') error = handleJWTExpiredError();
 

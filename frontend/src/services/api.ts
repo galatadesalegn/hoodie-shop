@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (
-  import.meta.env.PROD ? 'https://hoodie-shop.onrender.com/api' : '/api'
-);
+const CSRF_HEADER = 'X-CSRF-Token';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,11 +12,13 @@ const api = axios.create({
   },
 });
 
+let csrfTokenPromise: Promise<void> | null = null;
+
 // Fetch CSRF token on startup
 const fetchCsrfToken = async () => {
   try {
     const { data } = await axios.get(`${API_BASE_URL.replace(/\/$/, '')}/csrf-token`, { withCredentials: true });
-    api.defaults.headers.common['X-CSRF-Token'] = data.csrfToken;
+    api.defaults.headers.common[CSRF_HEADER] = data.csrfToken;
   } catch (err) {
     console.error('Failed to fetch CSRF token', err);
   }
@@ -25,11 +26,28 @@ const fetchCsrfToken = async () => {
 
 fetchCsrfToken();
 
-api.interceptors.request.use((config) => {
+const ensureCsrfToken = async () => {
+  if (!api.defaults.headers.common[CSRF_HEADER]) {
+    if (!csrfTokenPromise) {
+      csrfTokenPromise = fetchCsrfToken().finally(() => {
+        csrfTokenPromise = null;
+      });
+    }
+    await csrfTokenPromise;
+  }
+};
+
+api.interceptors.request.use(async (config) => {
   const accessToken = localStorage.getItem('accessToken');
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
+
+  const method = config.method?.toLowerCase();
+  if (method && ['post', 'put', 'patch', 'delete'].includes(method)) {
+    await ensureCsrfToken();
+  }
+
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
   }
