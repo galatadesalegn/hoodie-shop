@@ -34,6 +34,11 @@ const EMPTY_FORM = {
   colors: [{ name: 'Black', hex: '#000000' }],
 };
 
+const getPlacement = (item: { featured?: boolean; isActive?: boolean }) => {
+  if (!item.isActive) return 'hidden';
+  return item.featured ? 'popular' : 'shop';
+};
+
 const AdminProducts: React.FC = () => {
   const [hoodies, setHoodies] = useState<Hoodie[]>([]);
   const [total, setTotal] = useState(0);
@@ -120,6 +125,13 @@ const AdminProducts: React.FC = () => {
     setForm((f: any) => ({ ...f, colors: f.colors.map((c: any, ci: number) => ci === i ? { ...c, [field]: val } : c) }));
   };
   const removeColor = (i: number) => setForm((f: any) => ({ ...f, colors: f.colors.filter((_: any, ci: number) => ci !== i) }));
+  const setPlacement = (placement: 'shop' | 'popular') => {
+    setForm((f: any) => ({
+      ...f,
+      isActive: true,
+      featured: placement === 'popular',
+    }));
+  };
 
   const pages = Math.ceil(total / 15);
 
@@ -293,6 +305,12 @@ const AdminProducts: React.FC = () => {
                           <span className="text-[10px] font-black text-noir/20 dark:text-white/20 uppercase tracking-widest">{h.brand}</span>
                           <div className="w-1 h-1 rounded-full bg-noir/10 dark:bg-white/10" />
                           <span className="text-[10px] font-black text-[#4F46E5] uppercase tracking-widest">{h.category}</span>
+                          {h.featured && (
+                            <>
+                              <div className="w-1 h-1 rounded-full bg-noir/10 dark:bg-white/10" />
+                              <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Popular Archive</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -699,10 +717,33 @@ const AdminProducts: React.FC = () => {
                     <Grid size={14} className="text-indigo-500" />
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-noir/30 dark:text-white/30">Item Configuration</span>
                   </div>
+
+                  <div className="grid grid-cols-2 gap-3.5">
+                    {[
+                      { key: 'shop', label: 'Shop Store', icon: <Package size={16} /> },
+                      { key: 'popular', label: 'Popular Archive', icon: <TrendingUp size={16} /> },
+                    ].map(({ key, label, icon }) => {
+                      const active = getPlacement(form) === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setPlacement(key as 'shop' | 'popular')}
+                          className={`flex items-center justify-center gap-2.5 px-5 py-4 rounded-xl border transition-all ${
+                            active
+                              ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20'
+                              : 'bg-white dark:bg-white/5 border-noir/10 dark:border-white/10 text-noir/40 dark:text-white/40'
+                          }`}
+                        >
+                          {icon}
+                          <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                   
                   <div className="flex flex-wrap gap-3.5">
                     {[
-                      { key: 'featured', label: 'Featured' },
                       { key: 'newArrival', label: 'New Arrival' },
                       { key: 'isActive', label: 'Published' },
                     ].map(({ key, label }) => (
