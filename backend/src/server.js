@@ -103,6 +103,13 @@ const csrfProtection = csrf({
   } 
 });
 
+const csrfUnlessBearerToken = (req, res, next) => {
+  if (req.headers.authorization?.startsWith('Bearer ')) {
+    return next();
+  }
+  return csrfProtection(req, res, next);
+};
+
 // Health check
 app.get('/', (req, res) => {
   res.json({
@@ -121,9 +128,9 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/hoodies', csrfProtection, hoodieRoutes);
-app.use('/api/orders', csrfProtection, orderRoutes);
-app.use('/api/admin', csrfProtection, adminRoutes);
+app.use('/api/hoodies', csrfUnlessBearerToken, hoodieRoutes);
+app.use('/api/orders', csrfUnlessBearerToken, orderRoutes);
+app.use('/api/admin', csrfUnlessBearerToken, adminRoutes);
 
 // 404
 app.use(notFound);
