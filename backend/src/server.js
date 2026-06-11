@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
-import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -12,7 +11,6 @@ import fs from 'fs';
 import connectDB from './config/database.js';
 import logger from './utils/logger.js';
 import { globalErrorHandler, notFound } from './middleware/errorHandler.js';
-import { apiLimiter } from './middleware/rateLimiter.js';
 import csrf from 'csurf';
 import validateEnv from './utils/validateEnv.js';
 

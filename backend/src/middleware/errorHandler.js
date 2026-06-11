@@ -37,7 +37,7 @@ export const notFound = (req, res, next) => {
   next(new AppError(`Route ${req.originalUrl} not found.`, 404));
 };
 
-export const globalErrorHandler = (err, req, res, next) => {
+export const globalErrorHandler = (err, req, res, _next) => {
   err.statusCode = err.statusCode || err.status || 500;
   err.status = err.statusCode >= 400 && err.statusCode < 500 ? 'fail' : 'error';
 

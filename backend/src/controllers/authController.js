@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import User from '../models/User.js';
 import PendingRegistration from '../models/PendingRegistration.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken, setTokenCookies, clearTokenCookies } from '../utils/jwt.js';
-import { sendVerificationOtpEmail, sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js';
+import { sendVerificationOtpEmail, sendPasswordResetEmail } from '../utils/email.js';
 import { logSecurityEvent, getClientInfo } from '../utils/securityLog.js';
 import { AppError } from '../utils/response.js';
 
@@ -227,7 +227,7 @@ export const forgotPassword = async (req, res, next) => {
 
     try {
       await sendPasswordResetEmail(user.email, user.name, token);
-    } catch (_) {
+    } catch {
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });
@@ -359,7 +359,7 @@ export const resendVerificationOtp = async (req, res, next) => {
     }
 
     res.json({ success: true, message });
-  } catch (error) {
+  } catch {
     next(new AppError('Could not send verification email. Try again later.', 503));
   }
 };

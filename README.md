@@ -172,9 +172,13 @@ npm start
 1. Connect your GitHub repo
 2. Set build command: `npm run build`
 3. Set output directory: `dist`
-4. Add environment variables:
-   - `VITE_API_URL=https://your-backend.railway.app/api`
-   - `VITE_TELEGRAM_USERNAME=your_handle`
+4. For Vercel, leave `VITE_API_URL` unset or set it to `/api`; `vercel.json` proxies `/api/*` to the backend.
+5. Add environment variables:
+   - Storefront: `VITE_ADMIN_URL=https://your-admin-domain.vercel.app`
+   - Admin: `VITE_STORE_URL=https://your-frontend-domain.vercel.app`
+   - Optional: `VITE_TELEGRAM_USERNAME=your_handle`
+
+Do not set frontend/admin `VITE_API_URL` to the Render backend URL in production unless you also rework CSRF/cookie settings for cross-site requests.
 
 ---
 

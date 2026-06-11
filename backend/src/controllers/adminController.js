@@ -4,7 +4,6 @@ import crypto from 'crypto';
 import { logSecurityEvent, getClientInfo } from '../utils/securityLog.js';
 import { AppError } from '../utils/response.js';
 import { uploadAvatar } from '../config/cloudinary.js';
-import { sendEmailChangeVerification } from '../utils/email.js';
 import { clearTokenCookies } from '../utils/jwt.js';
 
 // Super Admin: Get all admins
@@ -156,7 +155,7 @@ export const updateProfile = async (req, res, next) => {
       try {
         const { sendVerificationOtpEmail } = await import('../utils/email.js');
         await sendVerificationOtpEmail(email, user.name, otp);
-      } catch (err) {
+      } catch {
         // cleanup pending fields on failure
         user.pendingEmail = undefined;
         user.emailChangeToken = undefined;

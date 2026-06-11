@@ -12,7 +12,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => {
+  params: async () => {
     return {
       folder: 'hoodie-store/products',
       allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'avif'],
@@ -30,7 +30,7 @@ const storage = new CloudinaryStorage({
 
 const avatarStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
+  params: async () => ({
     folder: 'hoodie-store/avatars',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'avif'],
     transformation: [{ 
@@ -55,7 +55,7 @@ const fileFilter = (req, file, cb) => {
 
 const paymentStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
+  params: async () => ({
     folder: 'hoodie-store/payments',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'avif'],
     transformation: [{ 

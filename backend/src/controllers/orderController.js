@@ -105,7 +105,7 @@ export const createOrder = async (req, res, next) => {
     if (customer.email) {
       try {
         await sendOrderConfirmationEmail(customer.email, customer.name, order);
-      } catch (_) {}
+      } catch {}
     }
 
     res.status(201).json({ success: true, message: 'Order placed successfully!', data: { order } });
