@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.PROD ? 'https://hoodie-shop.onrender.com/api' : '/api'
+);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: { 
     'Content-Type': 'application/json',
@@ -12,8 +16,7 @@ const api = axios.create({
 // Fetch CSRF token on startup
 const fetchCsrfToken = async () => {
   try {
-    const base = import.meta.env.VITE_API_URL || '/api';
-    const { data } = await axios.get(`${base.replace(/\/$/, '')}/csrf-token`, { withCredentials: true });
+    const { data } = await axios.get(`${API_BASE_URL.replace(/\/$/, '')}/csrf-token`, { withCredentials: true });
     api.defaults.headers.common['X-CSRF-Token'] = data.csrfToken;
   } catch (err) {
     console.error('Failed to fetch CSRF token', err);

@@ -75,7 +75,7 @@ const getAllowedOrigins = () => {
   const origins = [
     ...(process.env.FRONTEND_URL?.split(',') || []),
     ...(process.env.ADMIN_URL?.split(',') || []),
-  ].map((o) => o.trim()).filter(Boolean);
+  ].map((o) => o.trim().replace(/\/$/, '')).filter(Boolean);
   return origins;
 };
 

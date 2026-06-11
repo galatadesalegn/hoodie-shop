@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 const CSRF_HEADER = 'X-CSRF-Token';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.PROD ? 'https://hoodie-shop.onrender.com/api' : '/api'
+);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -13,8 +17,7 @@ const api = axios.create({
 let csrfTokenPromise: Promise<void> | null = null;
 
 const fetchCsrfToken = async () => {
-  const base = import.meta.env.VITE_API_URL || '/api';
-  const { data } = await axios.get(`${base.replace(/\/$/, '')}/csrf-token`, { withCredentials: true });
+  const { data } = await axios.get(`${API_BASE_URL.replace(/\/$/, '')}/csrf-token`, { withCredentials: true });
   api.defaults.headers.common[CSRF_HEADER] = data.csrfToken;
 };
 
