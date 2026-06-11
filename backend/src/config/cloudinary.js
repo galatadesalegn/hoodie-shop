@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
+import { AppError } from '../utils/response.js';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -48,7 +49,7 @@ const fileFilter = (req, file, cb) => {
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPG, PNG, WEBP, AVIF allowed.'), false);
+    cb(new AppError('Invalid file type. Only JPG, PNG, WEBP, AVIF allowed.', 400), false);
   }
 };
 
@@ -68,11 +69,29 @@ const paymentStorage = new CloudinaryStorage({
   }),
 });
 
-export const uploadPaymentScreenshot = multer({
+const paymentScreenshotUpload = multer({
   storage: paymentStorage,
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024, files: 1 },
 }).single('screenshot');
+
+export const uploadPaymentScreenshot = (req, res, next) => {
+  paymentScreenshotUpload(req, res, (error) => {
+    if (!error) return next();
+
+    if (error instanceof multer.MulterError) {
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return next(new AppError('Payment screenshot must be 5MB or smaller.', 400));
+      }
+      return next(new AppError(error.message, 400));
+    }
+
+    if (error.isOperational) return next(error);
+
+    console.error('Payment screenshot upload error:', error);
+    return next(new AppError('Could not upload payment screenshot. Please try again.', 503));
+  });
+};
 
 export const uploadProductImages = multer({
   storage,

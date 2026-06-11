@@ -3,6 +3,17 @@ import Hoodie from '../models/Hoodie.js';
 import { sendOrderConfirmationEmail } from '../utils/email.js';
 import { logSecurityEvent, getClientInfo } from '../utils/securityLog.js';
 import { AppError } from '../utils/response.js';
+import { deleteFromCloudinary } from '../config/cloudinary.js';
+
+const parsePayloadField = (field, label) => {
+  if (typeof field !== 'string') return field;
+
+  try {
+    return JSON.parse(field);
+  } catch {
+    throw new AppError(`Invalid ${label} payload.`, 400);
+  }
+};
 
 // Create order (customer)
 export const createOrder = async (req, res, next) => {
@@ -13,8 +24,8 @@ export const createOrder = async (req, res, next) => {
     let { items, customer, notes } = req.body;
 
     // Parse JSON strings if they come from FormData
-    if (typeof items === 'string') items = JSON.parse(items);
-    if (typeof customer === 'string') customer = JSON.parse(customer);
+    items = parsePayloadField(items, 'items');
+    customer = parsePayloadField(customer, 'customer');
 
     // Manual Validation
     if (!customer?.name || !customer?.phone || !customer?.address) {
@@ -27,25 +38,29 @@ export const createOrder = async (req, res, next) => {
 
     // Validate and enrich items
     const enrichedItems = [];
+    const inventoryUpdates = [];
     let totalAmount = 0;
 
     for (const item of items) {
+      if (!item.hoodieId || !item.size || !item.color || !Number.isInteger(Number(item.quantity)) || Number(item.quantity) < 1) {
+        return next(new AppError('Each item must include hoodieId, size, color, and quantity.', 400));
+      }
+
       const hoodie = await Hoodie.findById(item.hoodieId);
       if (!hoodie || !hoodie.isActive) return next(new AppError(`Hoodie not found: ${item.hoodieId}`, 404));
 
       const sizeObj = hoodie.sizes.find((s) => s.size === item.size);
-      if (!sizeObj || sizeObj.stock < item.quantity) {
+      const quantity = Number(item.quantity);
+
+      if (!sizeObj || sizeObj.stock < quantity) {
         return next(new AppError(`Insufficient stock for ${hoodie.name} in size ${item.size}`, 400));
       }
 
       const price = hoodie.discountPrice || hoodie.price;
-      const subtotal = price * item.quantity;
+      const subtotal = price * quantity;
       totalAmount += subtotal;
 
-      // Decrement stock and increment sold count
-      sizeObj.stock -= item.quantity;
-      hoodie.soldCount += item.quantity;
-      await hoodie.save();
+      inventoryUpdates.push({ hoodie, sizeObj, quantity });
 
       enrichedItems.push({
         hoodie: hoodie._id,
@@ -53,7 +68,7 @@ export const createOrder = async (req, res, next) => {
         hoodieImage: hoodie.images[0]?.url || '',
         size: item.size,
         color: item.color,
-        quantity: item.quantity,
+        quantity,
         price,
         subtotal,
       });
@@ -75,7 +90,16 @@ export const createOrder = async (req, res, next) => {
       };
     }
 
-    const order = await Order.create(orderData);
+    const order = new Order(orderData);
+    await order.validate();
+
+    for (const { hoodie, sizeObj, quantity } of inventoryUpdates) {
+      sizeObj.stock -= quantity;
+      hoodie.soldCount += quantity;
+      await hoodie.save();
+    }
+
+    await order.save();
 
     // Send confirmation email if email provided
     if (customer.email) {
@@ -86,6 +110,9 @@ export const createOrder = async (req, res, next) => {
 
     res.status(201).json({ success: true, message: 'Order placed successfully!', data: { order } });
   } catch (error) {
+    if (req.file?.filename) {
+      await deleteFromCloudinary(req.file.filename);
+    }
     next(error);
   }
 };

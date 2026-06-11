@@ -89,9 +89,7 @@ const PaymentPage: React.FC = () => {
       }));
       formData.append('notes', 'Payment via Telebirr');
 
-      await api.post('/orders', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/orders', formData);
 
       setStep(4);
     } catch (err: any) {
